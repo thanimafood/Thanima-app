@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17692A"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Thanima"><style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
 /* ===== v14 ===== */
+.ver { font-size: 10px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 5px; }
 .hi { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .sdot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--surface); padding: 0; cursor: pointer; }
 .sdot.on { background: #22A04B; box-shadow: 0 0 0 1px #22A04B; } .sdot.off { background: #E9A913; box-shadow: 0 0 0 1px #E9A913; }
@@ -805,7 +806,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   }
 
   function vPurch() {
-    var mv = S.moves.slice().sort(byDate).reverse(), ym = todayStr().slice(0, 7), mcost = 0, mn = 0;
+    var mv = S.moves.filter(function (x) { return x.kind !== 'take' && x.kind !== 'giveback'; }).sort(byDate).reverse(), ym = todayStr().slice(0, 7), mcost = 0, mn = 0;
     S.moves.forEach(function (m) { if (m.kind !== 'adjust' && String(m.date).indexOf(ym) === 0) { mcost += Number(m.cost) || 0; mn++; } });
     var h = '<div class="sec" style="margin-top:0"><h1 class="page-title">Purchase</h1><button class="btn primary sm" data-act="add-move">+ Purchase</button></div>' + stockTabs();
     h += '<div class="stats"><div class="stat"><span>This month’s purchases</span><b>' + mn + ' Entry</b></div>' + (OWNER ? '<div class="stat owe"><span>This month’s expense</span><b>' + fmt(mcost) + '</b></div>' : '') + '</div>';
@@ -821,11 +822,11 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   function vItems() {
     var q = S.iq.trim().toLowerCase();
     var list = S.items.filter(function (it) { return !q || (it.name || '').toLowerCase().indexOf(q) >= 0; }).sort(byName);
-    var h = '<div class="sec" style="margin-top:0"><h1 class="page-title">Items</h1>' + (OWNER ? '<button class="btn primary sm" data-act="add-item">+ Item</button>' : '') + '</div>' + stockTabs();
+    var h = '<div class="sec" style="margin-top:0"><h1 class="page-title">Items</h1>' + '<button class="btn primary sm" data-act="add-item">+ Item</button>' + '</div>' + stockTabs();
     if (S.items.length > 4) h += '<input class="search" id="iq" type="search" placeholder="Search item" value="' + esc(S.iq) + '" aria-label="Search item">';
     if (!S.items.length) {
       if (S.mode === 'cloud' && !S.loaded) return h;
-      return h + '<div class="empty"><div>No items added yet. Add each one (peanut candy, sona papdi, Baslimar, quail eggs...) with name, price and daily required stock.</div>' + (OWNER ? '<button class="btn primary" data-act="add-item">+ Add the first item</button>' : '') + '</div>';
+      return h + '<div class="empty"><div>No items added yet. Add each one (peanut candy, sona papdi, Baslimar, quail eggs...) with name, price and daily required stock.</div>' + '<button class="btn primary" data-act="add-item">+ Add the first item</button>' + '</div>';
     }
     if (!list.length) return h + '<div class="empty">Nothing found.</div>';
     return h + '<ul class="list">' + list.map(function (it) {
@@ -1324,7 +1325,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   function itemOptions(sel, withStock) {
     var sm = withStock ? stockMap() : null;
     return S.items.slice().sort(byName).map(function (it) {
-      return '<option value="' + esc(it.id) + '"' + (it.id === sel ? ' selected' : '') + '>' + esc(it.name) + (sm ? ' (Stock ' + qf(sm[it.id] || 0) + ')' : '') + '</option>';
+      return '<option value="' + esc(it.id) + '"' + (it.id === sel ? ' selected' : '') + '>' + esc(it.name) + (Number(it.price) ? ' · ₹' + it.price : '') + (sm ? ' (Stock ' + qf(sm[it.id] || 0) + ')' : '') + '</option>';
     }).join('');
   }
   function updateBalHint() {
@@ -1391,14 +1392,23 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     openSheet(h, 's_name');
   }
   function openItemSheet(id) {
-    if (!OWNER) { toast('Only the owner can add or change items'); return; }
+    if (!OWNER && id) { toast('Only the owner can change an item'); return; }
+    if (!OWNER) {
+      openSheet('<form id="itemForm" autocomplete="off" data-id=""><h2 id="ptitle">New item</h2><div class="hint">Commission and costs are set by the owner later.</div>' +
+        '<label class="l" for="i_name">Item name</label><input id="i_name" type="text" required placeholder="e.g. peanut candy">' +
+        '<div class="f2"><div><label class="l" for="i_unit">Quantity</label><input id="i_unit" type="text" placeholder="Piece / packet / tray"></div>' +
+        '<div><label class="l" for="i_price">Sale price (₹)</label><input id="i_price" type="number" inputmode="decimal" min="0" step="0.01"></div></div>' +
+        '<input type="hidden" id="i_target" value=""><input type="hidden" id="i_cost" value=""><input type="hidden" id="i_scomm" value=""><input type="hidden" id="i_pcomm" value=""><input type="hidden" id="i_pstaff" value=""><input type="hidden" id="i_sname" value=""><input type="hidden" id="i_sphone" value=""><input type="hidden" id="i_photo_data" value="">' + FA() + '</form>', 'i_name');
+      return;
+    }
     var it = id ? itemById(id) : null;
     var h = '<form id="itemForm" autocomplete="off" data-id="' + esc(it ? it.id : '') + '"><h2 id="ptitle">' + (it ? 'Edit item' : 'New item') + '</h2>' +
       '<label class="l" for="i_name">Item name</label><input id="i_name" type="text" required placeholder="e.g. peanut candy" value="' + esc(it ? it.name : '') + '">' +
       '<div class="f2"><div><label class="l" for="i_unit">Quantity</label><input id="i_unit" type="text" placeholder="Piece / packet / tray" value="' + esc(it ? it.unit : '') + '"></div>' +
       '<div><label class="l" for="i_target">Daily required stock</label><input id="i_target" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 50" value="' + esc(it && it.target ? it.target : '') + '"></div></div>' +
       '<div class="f2"><div><label class="l" for="i_price">Sale price (₹)</label><input id="i_price" type="number" inputmode="decimal" min="0" step="0.01" value="' + esc(it && it.price ? it.price : '') + '"></div>' +
-      '<div><label class="l" for="i_cost">Bought / produced price (₹)</label><input id="i_cost" type="number" inputmode="decimal" min="0" step="0.01" value="' + esc(it && it.cost ? it.cost : '') + '"></div></div>' +
+      '<div><label class="l" for="i_wprice">Rate for staff taking stock (₹)</label><input id="i_wprice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="blank = sale price" value="' + esc(it && it.wprice ? it.wprice : '') + '"></div></div>' +
+      '<div class="f2"><div><label class="l" for="i_cost">Bought / produced price (₹)</label><input id="i_cost" type="number" inputmode="decimal" min="0" step="0.01" value="' + esc(it && it.cost ? it.cost : '') + '"></div></div>' +
       '<div class="f2"><div><label class="l" for="i_scomm">Sales commission (₹ / piece)</label><input id="i_scomm" type="number" inputmode="decimal" min="0" step="0.01" value="' + esc(it && it.scomm ? it.scomm : '') + '"></div>' +
       '<div><label class="l" for="i_pcomm">Production commission (₹ / piece)</label><input id="i_pcomm" type="number" inputmode="decimal" min="0" step="0.01" value="' + esc(it && it.pcomm ? it.pcomm : '') + '"></div></div>' +
       '<label class="l" for="i_pstaff">Producing staff (regular)</label><select id="i_pstaff"><option value="">Not set</option>' + staffOptions('production', it ? it.pstaff : '') + '</select>' +
@@ -1413,7 +1423,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     if (!S.items.length) { toast('Add an item first'); openItemSheet(); return; }
     var sit0 = itemById(itemId || S.items.slice().sort(byName)[0].id) || {};
     var h = '<form id="moveForm" autocomplete="off"><h2 id="ptitle">Purchase / stock</h2>' +
-      '<label class="l" for="m_item">Item</label><select id="m_item">' + itemOptions(itemId, true) + '</select>' +
+      '<label class="l" for="m_item">Item</label><select id="m_item">' + itemOptions(itemId, true) + '</select><button type="button" class="btn sm" data-act="add-item" style="margin-top:6px">+ New item</button>' +
       '<label class="l" for="m_staff">Produced (to calculate production commission)</label><select id="m_staff"><option value="">Not recording who</option>' + staffOptions('production', sit0.pstaff) + '</select>' +
       '<label class="l">Type</label><div class="segs" role="radiogroup" aria-label="Stock entry type"><label class="seg"><input type="radio" name="m_kind" value="purchase"' + (kind0 === 'adjust' ? '' : ' checked') + '><span>Purchase / stock received</span></label><label class="seg"><input type="radio" name="m_kind" value="adjust"' + (kind0 === 'adjust' ? ' checked' : '') + '><span>Stock adjustment (+/−)</span></label></div>' +
       '<div class="f2"><div><label class="l" for="m_qty">Count</label><input id="m_qty" type="number" inputmode="decimal" step="any" required></div>' +
@@ -1647,7 +1657,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   }
 
   /* ================= v14: simple branded layout, roles, More, My page, bill + UPI ================= */
-  var LANG = 'en', THEME = 'auto';
+  var APP_VER = 'v14.3', LANG = 'en', THEME = 'auto';
   try { LANG = localStorage.getItem('thanima-lang') || 'en'; THEME = localStorage.getItem('thanima-theme') || 'auto'; } catch (e) { /* ignore */ }
   function applyTheme() { var de = document.documentElement; if (THEME === 'auto') de.removeAttribute('data-theme'); else de.setAttribute('data-theme', THEME); }
   applyTheme();
@@ -1725,14 +1735,15 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     var navs = navItems().map(function (x) { return x[0]; });
     if (navs.indexOf(S.tab) < 0 && ['orders', 'staff', 'report'].indexOf(S.tab) < 0) S.tab = navs[0];
     if (!OWNER && (S.tab === 'staff' || S.tab === 'report')) S.tab = navs[0];
-    if (S.tab === 'orders' && !OWNER && !canMake()) S.tab = navs[0];
     var a = document.activeElement, fid = a && a.id && $('#app').contains(a) ? a.id : null;
     var ss = null; try { ss = fid ? a.selectionStart : null; } catch (e) { ss = null; }
-    var body = S.tab === 'today' ? vToday() : S.tab === 'shops' ? (S.shopId ? vShop() : S.shopsView === 'routes' ? vRoutes() : S.shopsView === 'edit' ? vShopsEdit() : vShops()) :
+    var body; try {
+    body = S.tab === 'today' ? vToday() : S.tab === 'shops' ? (S.shopId ? vShop() : S.shopsView === 'routes' ? vRoutes() : S.shopsView === 'edit' ? vShopsEdit() : vShops()) :
       S.tab === 'stock' ? vStock() : S.tab === 'orders' ? vOrders() : S.tab === 'staff' ? vStaff() : S.tab === 'more' ? vMore() : S.tab === 'mine' ? vMine() : S.tab === 'tasks' ? vTasks() : vReport();
+    } catch (err) { body = '<div class="banner" style="white-space:pre-wrap">This page could not open.\nError: ' + esc(err && err.message) + '\n' + esc(String(err && err.stack || '').split('\n').slice(0, 3).join('\n')) + '</div>'; }
     var me = myStaff(), hello = OWNER ? 'Owner' : me ? me.name : '';
     $('#app').innerHTML = '<div class="wrap"><div class="top"><div class="brandrow"><img class="logo" src="' + LOGO + '" alt="Thanima Foods"><span class="brand">Food Agency</span></div>' +
-      '<div class="hi">' + (hello ? esc(hello) : '') + statusDot() + '</div></div>' + banner() + body + '</div>' + nav();
+      '<div class="hi">' + (OWNER || /shamil/i.test(hello) ? '<span class="ver">' + APP_VER + '</span>' : '') + (hello ? esc(hello) : '') + statusDot() + '</div></div>' + banner() + body + '</div>' + nav();
     trDom($('#app'));
     if (fid) {
       var n = document.getElementById(fid);
@@ -1814,10 +1825,12 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   var scN = 0;
   function itemDL() { return '<datalist id="itemdl">' + S.items.slice().sort(byName).map(function (it) { return '<option value="' + esc(it.name) + '"></option>'; }).join('') + '</datalist>'; }
   function itemByName(n) { n = String(n || '').trim().toLowerCase(); for (var i = 0; i < S.items.length; i++) if ((S.items[i].name || '').trim().toLowerCase() === n) return S.items[i]; return null; }
+  var _byName = itemByName;
+  itemByName = function (v) { return itemById(v) || _byName(v); };
   function scLine(box) {
     var el = document.getElementById(box); if (!el) return; scN++;
     var div = document.createElement('div'); div.className = 'line sc';
-    div.innerHTML = '<input class="l_name" type="text" list="itemdl" placeholder="Search item" aria-label="Item" autocomplete="off">' +
+    div.innerHTML = '<select class="l_name" aria-label="Item"><option value="">Select item</option>' + S.items.slice().sort(byName).map(function (it) { return '<option value="' + esc(it.id) + '">' + esc(it.name) + (Number(it.price) ? ' · ₹' + it.price : '') + '</option>'; }).join('') + '</select>' +
       '<input class="l_qty" type="number" inputmode="decimal" min="0" step="any" placeholder="Qty" aria-label="Quantity">' +
       '<input class="l_price" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Price" aria-label="Price">' +
       '<button type="button" class="icon-btn lx" aria-label="Remove row">×</button><div class="lt muted sm"></div>';
@@ -1879,8 +1892,9 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     if (cash > 0) mk('payment', cash, null, 2);
     docs.reduce(function (p, o) { return p.then(function (ok) { return ok === false ? false : saveDoc('entries', o); }); }, Promise.resolve(true)).then(function (ok) {
       if (!ok) { fail('Could not save'); return; }
+      docs.forEach(function (o) { if (!S.entries.some(function (e) { return e.id === o.id; })) S.entries.push(o); });
       closeSheet(); toast(tx('Save entry') + ' ✓');
-      if (saleAmt > 0) openBill(sid, d);
+      if (saleAmt > 0) setTimeout(function () { openBill(sid, d); }, 50);
     });
   }
 
@@ -1974,13 +1988,14 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     var go = function () {
       var cv = drawBill(b), pdf = pdfFromCanvas(cv), name = 'Bill-' + b.no + '.pdf', file = null;
       try { file = new File([pdf], name, { type: 'application/pdf' }); } catch (e) { file = null; }
-      BILL = { b: b, pdf: pdf, name: name, file: file, text: billText(b) };
+      BILL = { b: b, pdf: pdf, name: name, file: file, text: billText(b), url: URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' })) };
       var can = false; try { can = !!(file && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { can = false; }
       var h = '<div id="billSheet"><h2 id="ptitle">' + tx('Bill') + ' · ' + esc(s.name) + '</h2><img class="billimg" alt="Bill" src="' + cv.toDataURL('image/jpeg', 0.8) + '">' +
         (b.biz.upi ? '' : '<div class="hint due">UPI ID not added yet. Add it in More → Settings to show a QR on the bill.</div>') +
         (can ? '<button class="btn primary block" data-act="bill-share">Share PDF on WhatsApp</button>' : '') +
-        '<a class="btn ' + (can ? '' : 'primary ') + 'block wa" target="_blank" rel="noopener" style="margin-top:8px" href="' + esc(waHrefFor(s.phone, BILL.text)) + '">WhatsApp message' + (can ? '' : ' (with UPI)') + '</a>' +
-        '<div class="two" style="margin-top:8px"><button class="btn" data-act="bill-dl">Download PDF</button><button class="btn" data-act="close">' + tx('Close') + '</button></div>' +
+        '<a class="btn ' + (can ? '' : 'primary ') + 'block" style="margin-top:8px" href="' + BILL.url + '" target="_blank" rel="noopener" download="' + esc(name) + '">' + (can ? 'Open / save PDF' : 'Open PDF (then Share → WhatsApp)') + '</a>' +
+        '<a class="btn block wa" target="_blank" rel="noopener" style="margin-top:8px" href="' + esc(waHrefFor(s.phone, BILL.text)) + '">WhatsApp message' + (can ? '' : ' (with UPI)') + '</a>' +
+        '<div class="fa" style="margin-top:8px"><button type="button" class="btn" data-act="close">' + tx('Close') + '</button></div>' +
         (s.phone ? '' : '<div class="hint due">No phone number saved for this shop. Pick the contact in WhatsApp.</div>') + '</div>';
       openSheet(h);
     };
@@ -1988,7 +2003,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   }
   function billShare() {
     if (!BILL || !BILL.file) return;
-    navigator.share({ files: [BILL.file], text: BILL.text, title: BILL.name }).catch(function () { /* cancelled */ });
+    navigator.share({ files: [BILL.file], title: BILL.name }).catch(function () { /* cancelled */ });
   }
   function billDownload() {
     if (!BILL) return;
@@ -2004,11 +2019,11 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
       '<div class="ml">' + tx('Appearance') + '</div>' + seg('theme', 'theme', THEME, [['auto', tx('Auto')], ['light', tx('Light')], ['dark', tx('Dark')]]) + '</div>';
     h += '<ul class="list mlist">';
     var row = function (act, label, sub, data) { return '<li><button class="shop-card" data-act="' + act + '"' + (data || '') + '><div><div class="sname">' + label + '</div>' + (sub ? '<div class="muted sm">' + sub + '</div>' : '') + '</div><span class="chev">›</span></button></li>'; };
-    if (OWNER || canMake()) h += row('more-go', tx('Production order'), '', ' data-go="orders"');
+    h += row('more-go', tx('Production order'), 'Items short in stock · send to production', ' data-go="orders"');
     if (canSell()) h += row('day-report', tx('Day statement on WhatsApp'), '');
     if (OWNER) h += row('set-open', tx('Business & UPI'), bizInfo().upi ? esc(bizInfo().upi) : 'UPI ID not added');
     if (OWNER) h += row('more-go', tx('Backup & restore'), '', ' data-go="backup"');
-    h += row('lift', tx('Menu bar position'), '') + row('refresh', tx('Refresh'), 'v14') + row('logout', tx('Log out'), esc(S.user || ''));
+    h += row('lift', tx('Menu bar position'), '') + row('refresh', tx('Refresh'), APP_VER) + row('hard-update', 'Update app (clear old copy)', 'Use this if a new version does not show') + row('logout', tx('Log out'), esc(S.user || ''));
     return h + '</ul>';
   }
   function openSettings() {
@@ -2066,6 +2081,212 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     if (ms.length) h += '<div class="sec"><h2>Made today</h2></div><ul class="list">' + ms.map(function (m) { return '<li class="row-item"><div class="ri-main"><div class="sname">' + esc(itemName(m.itemId)) + '</div></div><div class="ri-side"><b class="num">' + qf(m.qty) + '</b></div></li>'; }).join('') + '</ul>';
     return h;
   }
+
+  window.addEventListener('error', function (ev) {
+    try { var t = document.getElementById('toast'); if (t) { t.textContent = 'Error: ' + (ev.message || 'unknown') + (ev.lineno ? ' (line ' + ev.lineno + ')' : ''); t.hidden = false; setTimeout(function () { t.hidden = true; }, 15000); } } catch (e) { /* ignore */ }
+  });
+  function shortageList() {
+    var sm = stockMap(), pm = pendingMap(), out = [];
+    S.items.slice().sort(byName).forEach(function (it) {
+      var st = sm[it.id] || 0, t = Number(it.target) || 0, need = t > 0 ? r2(t - st - (pm[it.id] || 0)) : (st <= 0 ? 0 : -1);
+      if (t > 0 && need > 0) out.push({ it: it, need: need, st: st });
+      else if (!(t > 0) && st <= 0) out.push({ it: it, need: 0, st: st });
+    });
+    return out;
+  }
+  function openShortage() {
+    var L = shortageList(), m = 'നമസ്കാരം, ' + BRAND + ' ആണ്.\n' + mlDate(todayStr()) + ' - സ്റ്റോക്ക് കുറവുള്ള സാധനങ്ങൾ:\n\n' +
+      (L.length ? L.map(function (r) { return '• ' + r.it.name + (r.need > 0 ? ' – ' + qf(r.need) + ' ' + (r.it.unit || '') + ' വേണം' : ' – സ്റ്റോക്ക് ഇല്ല'); }).join('\n') : '(എല്ലാ സാധനങ്ങളും സ്റ്റോക്കിൽ ഉണ്ട്)') + '\n\nദയവായി ഉണ്ടാക്കി തരണേ. നന്ദി 🙏';
+    openSheet('<div id="drBox"><h2 id="ptitle">Stock shortage message</h2><p class="muted sm" style="margin:0 0 8px">Edit if needed. After WhatsApp opens, select the production person and send.</p><label class="l" for="dr_text">Message</label><textarea id="dr_text">' + esc(m) + '</textarea>' +
+      '<div class="fa"><button type="button" class="btn" id="dr_copy">Copy</button><a class="btn primary" id="dr_go" target="_blank" rel="noopener" href="' + esc(waHrefFor('', m)) + '">WhatsApp</a></div><div class="fa" style="margin-top:8px"><button type="button" class="btn" data-act="close">Close</button></div></div>');
+  }
+  var _vOrders = vOrders;
+  vOrders = function () { return _vOrders().replace('<h1 class="page-title">Production order</h1>', '<h1 class="page-title">Production order</h1><button class="btn primary block" data-act="shortage" style="margin-bottom:10px">Send stock shortage list on WhatsApp</button>'); };
+  /* ================= v14.2: staff stock (take from godown), order slip, auto prices ================= */
+  var takeRate = function (it) { return Number(it && it.wprice) > 0 ? Number(it.wprice) : (Number(it && it.price) || 0); };
+  function staffStock(sid) {
+    var m = {};
+    S.moves.forEach(function (x) { if (x.staffId !== sid) return; var q = Number(x.qty) || 0; if (x.kind === 'take') m[x.itemId] = (m[x.itemId] || 0) + q; else if (x.kind === 'giveback') m[x.itemId] = (m[x.itemId] || 0) - q; });
+    S.entries.forEach(function (e) {
+      if (e.staffId !== sid || !e.lines) return;
+      e.lines.forEach(function (l) { var q = Number(l.q) || 0; if (e.type === 'sale') m[l.i] = (m[l.i] || 0) - q; else if (e.type === 'return') m[l.i] = (m[l.i] || 0) + q; });
+    });
+    return m;
+  }
+  function takeOptions() { return '<option value="">Select item</option>' + S.items.slice().sort(byName).map(function (it) { return '<option value="' + esc(it.id) + '">' + esc(it.name) + (takeRate(it) ? ' · ₹' + takeRate(it) : '') + '</option>'; }).join(''); }
+  function tkLine() {
+    var el = document.getElementById('tk_lines'); if (!el) return;
+    var d = document.createElement('div'); d.className = 'line sc';
+    d.innerHTML = '<select class="t_item" aria-label="Item">' + takeOptions() + '</select><input class="t_qty" type="number" inputmode="decimal" min="0" step="any" placeholder="Qty" aria-label="Quantity"><input class="t_rate" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Rate" aria-label="Rate"><button type="button" class="btn sm lx" aria-label="Remove">×</button><div class="lt muted sm"></div>';
+    el.appendChild(d);
+  }
+  function tkRead() {
+    var out = [];
+    document.querySelectorAll('#tk_lines .line').forEach(function (r) {
+      var it = itemById(r.querySelector('.t_item').value), q = parseFloat(r.querySelector('.t_qty').value), p = parseFloat(r.querySelector('.t_rate').value);
+      if (it && isFinite(q) && q > 0) out.push({ it: it, q: q, p: isFinite(p) ? p : takeRate(it) });
+    });
+    return out;
+  }
+  function tkUpdate() {
+    var tot = 0;
+    document.querySelectorAll('#tk_lines .line').forEach(function (r) {
+      var it = itemById(r.querySelector('.t_item').value), q = parseFloat(r.querySelector('.t_qty').value), p = parseFloat(r.querySelector('.t_rate').value), lt = r.querySelector('.lt');
+      if (it && isFinite(q) && isFinite(p)) { tot += q * p; lt.textContent = '= ' + fmt(q * p); } else lt.textContent = '';
+    });
+    var t = document.getElementById('tk_tot'); if (t) t.innerHTML = '<div class="srow big"><span>Total</span><b class="num">' + fmt(tot) + '</b></div>';
+  }
+  function openTake(kind, sid0) {
+    if (!S.items.length) { toast('No items yet. Ask the owner to add items.'); return; }
+    var me = OWNER ? '' : meStaffId(), give = kind === 'giveback';
+    var h = '<form id="tkForm" autocomplete="off" data-kind="' + kind + '"><h2 id="ptitle">' + (give ? 'Give back to godown' : 'Take from godown') + '</h2>' +
+      (OWNER ? '<label class="l" for="tk_staff">Staff</label><select id="tk_staff">' + staffOptions('sales', sid0 || '') + '</select>' : '') +
+      '<label class="l">Items</label><div id="tk_lines"></div><button type="button" class="btn sm" data-act="tk-add">+ Add item</button>' +
+      '<div id="tk_tot" class="ssum" style="margin-top:10px"></div>' + FA(give ? 'Save' : 'Take') + '</form>';
+    openSheet(h); tkLine(); tkUpdate(); void me;
+  }
+  function submitTake(f, fail, done) {
+    var L = tkRead(); if (!L.length) return fail('Select an item and enter the quantity');
+    var kind = f.dataset.kind, sel = document.getElementById('tk_staff'), sid = sel ? sel.value : meStaffId();
+    if (!sid) return fail(OWNER ? 'Select the staff' : 'Your login is not linked to a staff record. Ask the owner.');
+    var t0 = Date.now(), k = 0;
+    L.reduce(function (p, r) { return p.then(function (ok) { return ok === false ? false : saveDoc('moves', { id: uid(), itemId: r.it.id, staffId: sid, kind: kind, qty: r.q, price: r.p, amount: r2(r.q * r.p), date: todayStr(), createdAt: t0 + (k++) }); }); }, Promise.resolve(true)).then(function (ok) { done(ok, (kind === 'take' ? 'Taken ✓' : 'Saved ✓')); });
+  }
+  function myStockRows(sid) {
+    var m = staffStock(sid), ks = Object.keys(m).filter(function (k) { return Math.abs(m[k]) > 0.0001 && itemById(k); }).sort(function (a, b) { return byName(itemById(a), itemById(b)); });
+    return ks.length ? '<ul class="list">' + ks.map(function (k) { var it = itemById(k), q = m[k]; return '<li class="row-item"><div class="ri-main"><div class="sname">' + esc(it.name) + '</div></div><div class="ri-side"><b class="num ' + (q < 0 ? 'neg' : '') + '">' + qf(q) + '</b> <span class="muted sm">' + esc(it.unit || '') + '</span></div></li>'; }).join('') + '</ul>' : '<div class="empty">Nothing with you now. Tap “Take from godown”.</div>';
+  }
+  function takesToday(sid) {
+    var td = todayStr(), l = S.moves.filter(function (x) { return x.staffId === sid && x.date === td && (x.kind === 'take' || x.kind === 'giveback'); }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+    if (!l.length) return '';
+    var tot = 0; l.forEach(function (x) { if (x.kind === 'take') tot += Number(x.amount) || 0; else tot -= Number(x.amount) || 0; });
+    return '<div class="sec"><h2>Today’s godown entries</h2><span class="muted sm">' + fmt(tot) + '</span></div><ul class="list">' + l.map(function (x) { var give = x.kind === 'giveback'; return '<li class="row-item"><div class="ri-main"><div class="ri-top"><span class="chip ' + (give ? 'owe' : 'ok') + '">' + (give ? 'Given back' : 'Taken') + '</span></div><div>' + esc(itemName(x.itemId)) + ' × ' + qf(x.qty) + (x.price ? ' @ ' + fmt(x.price) : '') + '</div></div><div class="ri-side"><div class="amt">' + fmt(x.amount) + '</div>' + delBtn('moves', x.id) + '</div></li>'; }).join('') + '</ul>';
+  }
+  function vMyStock() {
+    var sid = meStaffId(), h = '<h1 class="page-title">My stock</h1>';
+    if (!sid) return h + '<div class="empty">Your login is not linked to a staff record yet. Ask the owner to open Staff → your name → Edit and set your login ID.</div>';
+    h += '<div class="two"><button class="btn primary" data-act="take">+ Take from godown</button><button class="btn" data-act="giveback">Give back</button></div>';
+    h += '<button class="btn block" data-act="oslip" style="margin-bottom:8px">Order slip for production</button>';
+    h += '<div class="sec"><h2>With me now</h2></div>' + myStockRows(sid) + takesToday(sid);
+    return h;
+  }
+  function vStaffStock() {
+    var h = '<div class="sec" style="margin-top:0"><h1 class="page-title">Stock</h1></div>' + stockTabs();
+    h += '<div class="two"><button class="btn primary" data-act="take">+ Give stock to staff</button><button class="btn" data-act="giveback">Staff gave back</button></div>';
+    var any = false;
+    S.staff.slice().sort(byName).forEach(function (s) {
+      if (s.role === 'production') return; any = true;
+      h += '<div class="sec"><h2>' + esc(s.name) + '</h2><button class="btn sm" data-act="take" data-id="' + esc(s.id) + '">+ Take</button></div>' + myStockRows(s.id);
+    });
+    return any ? h : h + '<div class="empty">No sales staff yet.</div>';
+  }
+  var _vStock = vStock;
+  vStock = function () { if (!OWNER && canSell()) return vMyStock(); if (OWNER && S.stockView === 'staff') return vStaffStock(); return _vStock(); };
+  var _stockTabs = stockTabs;
+  stockTabs = function () { if (!OWNER) return _stockTabs(); return '<div class="chips" style="margin-bottom:12px">' + [['stock', 'Stock'], ['staff', 'With staff'], ['purchase', 'Purchase'], ['items', 'Items (' + S.items.length + ')']].map(function (f) { return '<button class="filter" data-act="stview" data-v="' + f[0] + '" aria-pressed="' + (S.stockView === f[0]) + '">' + f[1] + '</button>'; }).join('') + '</div>'; };
+  var _stockMap = stockMap;
+  stockMap = function () {
+    var m = {};
+    S.moves.forEach(function (x) { if (x.kind === 'take' || x.kind === 'giveback') return; m[x.itemId] = (m[x.itemId] || 0) + (Number(x.qty) || 0); });
+    S.entries.forEach(function (e) { if (!e.lines) return; e.lines.forEach(function (l) { var q = Number(l.q) || 0; if (e.type === 'sale') m[l.i] = (m[l.i] || 0) - q; else if (e.type === 'return') m[l.i] = (m[l.i] || 0) + q; }); });
+    return m;
+  };
+  void _stockMap;
+
+  /* order slip written by the sales person for production */
+  function osRows() {
+    var sid = OWNER ? '' : meStaffId(), td = todayStr(), sold = soldByItem(S.entries.filter(function (e) { return e.date === td && (!sid || e.staffId === sid); })), st = sid ? staffStock(sid) : stockMap(), L = [];
+    S.items.slice().sort(byName).forEach(function (it) { var s = sold[it.id] || 0, left = st[it.id] || 0; if (s > 0 || left <= 0) L.push({ it: it, sold: s, left: left }); });
+    return L;
+  }
+  function osText() {
+    var me = myStaff(), rows = [], phones = {};
+    document.querySelectorAll('#osBox .osrow').forEach(function (r) {
+      var q = parseFloat(r.querySelector('.os_q').value), it = itemById(r.dataset.id);
+      if (it && isFinite(q) && q > 0) { rows.push('• ' + it.name + ' – ' + qf(q) + ' ' + (it.unit || '')); if (it.sphone) phones[it.sphone] = 1; }
+    });
+    var ph = Object.keys(phones); osText.phone = ph.length === 1 ? ph[0] : '';
+    return 'നമസ്കാരം, ' + BRAND + (me ? ' (' + me.name + ')' : '') + ' ആണ്.\n' + mlDate(todayStr()) + ' - ഓർഡർ:\n\n' + (rows.length ? rows.join('\n') : '(ഒന്നും ചേർത്തിട്ടില്ല)') + '\n\nദയവായി തയ്യാറാക്കി തരണേ. നന്ദി 🙏';
+  }
+  function osSync() { var t = document.getElementById('os_text'), g = document.getElementById('os_go'); if (!t) return; t.value = osText(); if (g) g.href = waHrefFor(osText.phone || '', t.value); }
+  function openOrderSlip() {
+    var L = osRows();
+    var h = '<div id="osBox"><h2 id="ptitle">Order slip for production</h2><p class="muted sm" style="margin:0 0 8px">Quantity to ask production for. Prefilled with what was sold today; change as needed.</p>' +
+      (L.length ? L.map(function (r) { return '<div class="osrow row-item" data-id="' + esc(r.it.id) + '"><div class="ri-main"><div class="sname">' + esc(r.it.name) + '</div><div class="muted sm">Sold today ' + qf(r.sold) + ' · with ' + (OWNER ? 'godown' : 'me') + ' ' + qf(r.left) + '</div></div><div class="ri-side"><input class="os_q" type="number" inputmode="decimal" min="0" step="any" style="width:76px" value="' + (r.sold || '') + '" aria-label="Quantity"></div></div>'; }).join('') : '<div class="empty">No sales today and nothing short.</div>') +
+      '<label class="l" for="os_text">Message</label><textarea id="os_text"></textarea><div class="fa"><button type="button" class="btn" id="os_rec">Record order</button><a class="btn primary" id="os_go" target="_blank" rel="noopener" href="#">WhatsApp</a></div><div class="fa" style="margin-top:8px"><button type="button" class="btn" data-act="close">Close</button></div></div>';
+    openSheet(h); osSync();
+  }
+  function osRecord(btn) {
+    var me = meStaffId(), rows = [];
+    document.querySelectorAll('#osBox .osrow').forEach(function (r) { var q = parseFloat(r.querySelector('.os_q').value), it = itemById(r.dataset.id); if (it && isFinite(q) && q > 0) rows.push({ it: it, q: q }); });
+    if (!rows.length) { toast('Enter a quantity'); return; }
+    btn.disabled = true;
+    rows.reduce(function (p, r) { return p.then(function () { return saveDoc('orders', { id: uid(), itemId: r.it.id, qty: r.q, date: todayStr(), status: 'pending', sname: r.it.sname || '', sphone: r.it.sphone || '', staffId: me || '', createdAt: Date.now() }); }); }, Promise.resolve()).then(function () { closeSheet(); toast('Order recorded'); });
+  }
+  var _vOrders2 = vOrders;
+  vOrders = function () { return _vOrders2().replace('<button class="btn primary block" data-act="shortage"', '<button class="btn primary block" data-act="oslip" style="margin-bottom:8px">Make order slip (what to make)</button><button class="btn block" data-act="shortage"'); };
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (t.id === 'os_rec') { osRecord(t); return; }
+    if (t.closest && t.closest('#tkForm .lx')) { var r = t.closest('.line'); if (r) { r.remove(); tkUpdate(); } return; }
+    var el = t.closest && t.closest('[data-act]'); if (!el) return;
+    var a = el.dataset.act;
+    if (a === 'take') openTake('take', el.dataset.id);
+    else if (a === 'giveback') openTake('giveback', el.dataset.id);
+    else if (a === 'tk-add') tkLine();
+    else if (a === 'oslip') openOrderSlip();
+  });
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t.closest && t.closest('#tkForm')) { if (t.classList.contains('t_rate')) t.dataset.manual = '1'; tkUpdate(); }
+    else if (t.classList && t.classList.contains('os_q')) osSync();
+    else if (t.id === 'm_cost') t.dataset.manual = '1';
+    else if (t.id === 'm_qty') autoPurchaseCost();
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.classList && t.classList.contains('t_item')) { var it = itemById(t.value), row = t.closest('.line'); if (it && row) { var p = row.querySelector('.t_rate'); p.value = takeRate(it) || ''; p.dataset.manual = ''; if (!row.querySelector('.t_qty').value) row.querySelector('.t_qty').focus(); } tkUpdate(); }
+    else if (t.id === 'm_item') autoPurchaseCost();
+  });
+  function autoPurchaseCost() {
+    var c = document.getElementById('m_cost'), it = itemById((document.getElementById('m_item') || {}).value), q = parseFloat((document.getElementById('m_qty') || {}).value);
+    var kind = document.querySelector('input[name=m_kind]:checked');
+    if (!c || c.dataset.manual || !it || !kind || kind.value !== 'purchase') return;
+    c.value = isFinite(q) && Number(it.cost) > 0 ? r2(q * Number(it.cost)) : '';
+  }
+
+
+  function hardUpdate() {
+    toast('Updating…');
+    var go = function () { location.replace(location.pathname + '?v=' + Date.now()); };
+    try {
+      var p = [];
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) p.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }));
+      if (window.caches && caches.keys) p.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
+      Promise.all(p).then(go, go);
+    } catch (e) { go(); }
+  }
+  /* product photo: prepare first, then a fresh tap does the share (phones refuse share after a long wait) */
+  var CAT = null;
+  shareCatalogue = function (sid, rid) {
+    var av = availItems().list.slice(0, 16); if (!av.length) { toast('Add items with a sale price first'); return; }
+    var s = sid ? shopById(sid) : null, r = rid ? routeById(rid) : (s && s.routeId ? routeById(s.routeId) : null);
+    var nv = r ? nextVisit(r, addDays(S.date, 1)) : '', text = orderMsg(s, r);
+    toast('Preparing product photos…');
+    makeCatalogue(av, nv).then(function (blob) {
+      if (!blob) throw new Error('blob');
+      var file = null; try { file = new File([blob], 'thanima-products.jpg', { type: 'image/jpeg' }); } catch (e) { file = null; }
+      var can = false; try { can = !!(file && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { can = false; }
+      CAT = { file: file, can: can, text: text, url: URL.createObjectURL(blob), phone: s ? s.phone : '' };
+      openSheet('<div id="catBox"><h2 id="ptitle">Product photos</h2><img class="billimg" alt="Products" src="' + CAT.url + '">' +
+        (can ? '<button class="btn primary block" data-act="cat-go">Share photo on WhatsApp</button>' : '') +
+        '<a class="btn ' + (can ? '' : 'primary ') + 'block" style="margin-top:8px" href="' + CAT.url + '" target="_blank" rel="noopener" download="thanima-products.jpg">' + (can ? 'Open / save photo' : 'Open photo (then Share → WhatsApp)') + '</a>' +
+        '<a class="btn block wa" style="margin-top:8px" target="_blank" rel="noopener" href="' + esc(waHrefFor(CAT.phone, text)) + '">WhatsApp message (text only)</a>' +
+        '<div class="fa" style="margin-top:8px"><button type="button" class="btn" data-act="close">Close</button></div></div>');
+    }).catch(function () { toast('Could not prepare the photo on this phone'); });
+  };
+  function catGo() { if (!CAT || !CAT.file) return; navigator.share({ files: [CAT.file], text: CAT.text }).catch(function () { /* cancelled */ }); }
 
   /* live updates inside the shop card and My page */
   document.addEventListener('input', function (ev) {
@@ -2547,6 +2768,9 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
       case 'set-open': openSettings(); break;
       case 'more-go': if (el.dataset.go === 'backup') { S.tab = 'report'; S.rsub = 'backup'; } else S.tab = el.dataset.go; render(); window.scrollTo(0, 0); break;
       case 'sc-add': scLine(el.dataset.box); break;
+      case 'shortage': openShortage(); break;
+      case 'hard-update': hardUpdate(); break;
+      case 'cat-go': catGo(); break;
       case 'bill-open': openBill(el.dataset.shop, el.dataset.date); break;
       case 'bill-share': billShare(); break;
       case 'bill-dl': billDownload(); break;
@@ -2668,6 +2892,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     var done = function (ok, msg) { if (ok) { closeSheet(); toast(msg); } else if (btn) btn.disabled = false; };
     var num = function (id) { var v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : 0; };
     if (f.id === 'scForm') { submitShopCard(f, fail, done); return; }
+    if (f.id === 'tkForm') { submitTake(f, fail, done); return; }
     if (f.id === 'setForm') {
       saveDoc('runs', { id: '_settings', biz: document.getElementById('b_name').value.trim(), addr: document.getElementById('b_addr').value.trim(), phone: document.getElementById('b_phone').value.trim(), upi: document.getElementById('b_upi').value.trim().replace(/\s+/g, ''), upiName: document.getElementById('b_upin').value.trim(), createdAt: Date.now() }).then(function (ok) { done(ok, 'Saved'); });
       return;
@@ -2691,7 +2916,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     } else if (f.id === 'itemForm') {
       var oi = f.dataset.id ? itemById(f.dataset.id) : null, iname = document.getElementById('i_name').value.trim();
       if (!iname) return fail('Enter the item name');
-      saveDoc('items', { id: oi ? oi.id : uid(), name: iname, unit: document.getElementById('i_unit').value.trim(), target: num('i_target'), price: num('i_price'), cost: num('i_cost'), scomm: num('i_scomm'), pcomm: num('i_pcomm'), pstaff: document.getElementById('i_pstaff').value,
+      saveDoc('items', { id: oi ? oi.id : uid(), name: iname, unit: document.getElementById('i_unit').value.trim(), target: num('i_target'), price: num('i_price'), wprice: (document.getElementById('i_wprice') ? num('i_wprice') : 0), cost: num('i_cost'), scomm: num('i_scomm'), pcomm: num('i_pcomm'), pstaff: document.getElementById('i_pstaff').value,
         sname: document.getElementById('i_sname').value.trim(), sphone: document.getElementById('i_sphone').value.trim(), photo: document.getElementById('i_photo_data').value, createdAt: oi ? (oi.createdAt || Date.now()) : Date.now() })
         .then(function (ok) { done(ok, 'Item saved'); });
     } else if (f.id === 'moveForm') {
