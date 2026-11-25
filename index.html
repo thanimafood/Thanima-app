@@ -1,5 +1,33 @@
 <!doctype html>
-<html lang="ml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17692A"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Thanima"><style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<html lang="ml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17692A"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Thanima"><style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* ===== v14 ===== */
+.hi { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.sdot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--surface); padding: 0; cursor: pointer; }
+.sdot.on { background: #22A04B; box-shadow: 0 0 0 1px #22A04B; } .sdot.off { background: #E9A913; box-shadow: 0 0 0 1px #E9A913; }
+.dash14 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.dt { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; min-width: 0; position: relative; }
+.dt small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+.dt b { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.dt.main { background: var(--accent); border-color: var(--accent); } .dt.main small, .dt.main b { color: #fff; }
+.dt.ok b { color: var(--ok); } .dt.due b { color: var(--due); } .dt.ret b { color: var(--ret); }
+.xbtn { display: block; margin-top: 4px; border: 1px dashed var(--accent); background: transparent; color: var(--accent); border-radius: 8px; font-size: 11px; font-weight: 700; padding: 2px 8px; cursor: pointer; }
+.cashline { display: flex; justify-content: space-between; align-items: baseline; background: var(--gold-bg); border-radius: 12px; padding: 8px 12px; font-size: 13px; margin-bottom: 6px; }
+.cashline i { font-style: normal; font-size: 11px; color: var(--muted); } .cashline b { font-size: 17px; } .cashline.neg b { color: var(--red); }
+.sechead { display: flex; gap: 6px; }
+.balcard { display: flex; justify-content: space-between; align-items: baseline; border-radius: 12px; background: var(--surface-2); padding: 8px 12px; margin-bottom: 8px; font-size: 14px; }
+.balcard b { font-size: 18px; } .balcard.due b { color: var(--due); } .balcard.owe b { color: var(--owe); }
+.line.sc { grid-template-columns: minmax(0, 1fr) 62px 74px auto; align-items: center; }
+.line.sc .lt { grid-column: 1 / -1; text-align: right; margin-top: -4px; }
+.retbox { margin: 10px 0 4px; border: 1px dashed var(--line); border-radius: 12px; padding: 8px 10px; } .retbox summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ret); }
+.mgroup { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; margin-bottom: 12px; }
+.ml { font-size: 12px; font-weight: 700; color: var(--muted); margin: 6px 0; text-transform: uppercase; letter-spacing: .06em; }
+.seg2 { flex: 1; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 999px; padding: 8px 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.seg2.on { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.mlist { display: grid; gap: 8px; list-style: none; padding: 0; }
+.billimg { width: 100%; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; }
+.row-item.task { align-items: center; } .tph { width: 56px; height: 56px; border-radius: 10px; background: var(--surface-2); display: grid; place-items: center; overflow: hidden; flex: none; } .tph img { width: 100%; height: 100%; object-fit: cover; }
+.stile.st-sale { border-left: 6px solid #22A04B; background: var(--ok-bg); } .stile.st-nobuy { border-left: 6px solid #DB2777; background: var(--nb-bg); } .stile.st-none { border-left: 6px solid var(--red); }
+</style>
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -684,7 +712,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
 
   function vShops() {
     var q = S.q.trim().toLowerCase();
-    var list = S.shops.filter(function (s) {
+    var list = S.shops.filter(shopVisible).filter(function (s) {
       var b = balanceOf(s.id);
       if (S.rfilter && (S.rfilter === '_none' ? s.routeId : s.routeId !== S.rfilter)) return false;
       if (S.filter === 'rec' && !(b > 0)) return false;
@@ -1269,7 +1297,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     var a = document.activeElement, fid = a && a.id && $('#app').contains(a) ? a.id : null;
     var ss = null; try { ss = fid ? a.selectionStart : null; } catch (e) { ss = null; }
     var body = S.tab === 'today' ? vToday() : S.tab === 'shops' ? (S.shopId ? vShop() : S.shopsView === 'routes' ? vRoutes() : S.shopsView === 'edit' ? vShopsEdit() : vShops()) : S.tab === 'stock' ? vStock() : S.tab === 'orders' ? vOrders() : S.tab === 'staff' ? vStaff() : vReport();
-    var sync = S.mode === 'cloud' ? (S.loaded ? syncLabel() + ' · v1' : 'Loading') : S.mode === 'local' ? 'On this phone only' : '';
+    var sync = S.mode === 'cloud' ? (S.loaded ? syncLabel() + ' · v13' : 'Loading') : S.mode === 'local' ? 'On this phone only' : '';
     $('#app').innerHTML = '<div class="wrap"><div class="top"><div class="brandrow"><img class="logo" src="' + LOGO + '" alt="Thanima Foods"><span class="brand">Food Agency</span></div><div class="sync">' + sync + (S.user ? ' · <button class="link" data-act="refresh" style="font-size:12px">⟳ Refresh</button>' : '') + (S.user ? ' · <button class="link" data-act="logout" style="font-size:12px">Log out</button>' : '') + '<button class="liftbtn" data-act="lift" aria-label="Move the menu bar up or down" title="Move menu bar up / down">⇅</button></div></div>' + banner() + body + '</div>' + nav();
     if (fid) {
       var n = document.getElementById(fid);
@@ -1501,6 +1529,555 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
       '<div class="fa" style="margin-top:4px"><button type="button" class="btn" data-act="close">Close</button></div></div>';
     openSheet(h);
   }
+
+  /* ---------- QR code (byte mode, error level M, versions 1-10) ---------- */
+  var QR = (function () {
+    var EXP = [], LOG = [], x = 1, i;
+    for (i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 256) x ^= 0x11d; }
+    for (i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+    var gmul = function (a, b) { return a && b ? EXP[LOG[a] + LOG[b]] : 0; };
+    var DATA = [0, 16, 28, 44, 64, 86, 108, 124, 154, 182, 216];
+    var BLK = [null, [[1, 16]], [[1, 28]], [[1, 44]], [[2, 32]], [[2, 43]], [[4, 27]], [[4, 31]], [[2, 38], [2, 39]], [[3, 36], [2, 37]], [[4, 43], [1, 44]]];
+    var ECL = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26];
+    var ALN = [null, [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+    function rsPoly(n) {
+      var p = [1], k, j;
+      for (k = 0; k < n; k++) { var q = new Array(p.length + 1).fill(0); for (j = 0; j < p.length; j++) { q[j] ^= p[j]; q[j + 1] ^= gmul(p[j], EXP[k]); } p = q; }
+      return p;
+    }
+    function rsRem(data, n) {
+      var g = rsPoly(n), r = new Array(n).fill(0), j;
+      data.forEach(function (b) { var f = b ^ r[0]; r.shift(); r.push(0); if (f) for (j = 0; j < n; j++) r[j] ^= gmul(g[j + 1], f); });
+      return r;
+    }
+    function bitLen(n) { var c = 0; while (n > 0) { c++; n >>= 1; } return c; }
+    function bchRem(v, g, shiftBits) { var r = v << shiftBits; while (bitLen(r) >= bitLen(g)) r ^= g << (bitLen(r) - bitLen(g)); return r; }
+    var MASKS = [
+      function (r, c) { return (r + c) % 2 === 0; }, function (r) { return r % 2 === 0; }, function (r, c) { return c % 3 === 0; }, function (r, c) { return (r + c) % 3 === 0; },
+      function (r, c) { return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0; }, function (r, c) { return (r * c) % 2 + (r * c) % 3 === 0; },
+      function (r, c) { return ((r * c) % 2 + (r * c) % 3) % 2 === 0; }, function (r, c) { return ((r * c) % 3 + (r + c) % 2) % 2 === 0; }
+    ];
+    function utf8(s) { var o = [], k, c; s = unescape(encodeURIComponent(s)); for (k = 0; k < s.length; k++) { c = s.charCodeAt(k); o.push(c); } return o; }
+    function build(text) {
+      var bytes = utf8(text), v = 0, n;
+      for (n = 1; n <= 10; n++) { if (DATA[n] >= bytes.length + (n < 10 ? 2 : 3)) { v = n; break; } }
+      if (!v) return null;
+      var bits = [], put = function (val, len) { for (var k = len - 1; k >= 0; k--) bits.push((val >> k) & 1); };
+      put(4, 4); put(bytes.length, v < 10 ? 8 : 16); bytes.forEach(function (b) { put(b, 8); });
+      var cap = DATA[v] * 8; for (n = 0; n < 4 && bits.length < cap; n++) bits.push(0);
+      while (bits.length % 8) bits.push(0);
+      var cw = []; for (n = 0; n < bits.length; n += 8) { var b = 0; for (var k = 0; k < 8; k++) b = (b << 1) | bits[n + k]; cw.push(b); }
+      for (n = 0; cw.length < DATA[v]; n++) cw.push(n % 2 ? 0x11 : 0xEC);
+      var blocks = [], pos = 0;
+      BLK[v].forEach(function (g) { for (var k = 0; k < g[0]; k++) { var d = cw.slice(pos, pos + g[1]); pos += g[1]; blocks.push({ d: d, e: rsRem(d, ECL[v]) }); } });
+      var out = [], maxd = Math.max.apply(null, blocks.map(function (b) { return b.d.length; }));
+      for (n = 0; n < maxd; n++) blocks.forEach(function (b) { if (n < b.d.length) out.push(b.d[n]); });
+      for (n = 0; n < ECL[v]; n++) blocks.forEach(function (b) { out.push(b.e[n]); });
+      var size = 17 + 4 * v, best = null, bestScore = 1e9, m;
+      for (m = 0; m < 8; m++) { var mat = make(v, size, out, m); var sc = penalty(mat, size); if (sc < bestScore) { bestScore = sc; best = mat; } }
+      return best;
+    }
+    function make(v, size, data, mask) {
+      var M = [], r, c, k;
+      for (r = 0; r < size; r++) { M.push(new Array(size).fill(null)); }
+      var probe = function (row, col) {
+        for (var a = -1; a <= 7; a++) for (var b = -1; b <= 7; b++) {
+          if (row + a < 0 || size <= row + a || col + b < 0 || size <= col + b) continue;
+          M[row + a][col + b] = (0 <= a && a <= 6 && (b === 0 || b === 6)) || (0 <= b && b <= 6 && (a === 0 || a === 6)) || (2 <= a && a <= 4 && 2 <= b && b <= 4);
+        }
+      };
+      probe(0, 0); probe(size - 7, 0); probe(0, size - 7);
+      var al = ALN[v];
+      al.forEach(function (ar) { al.forEach(function (ac) {
+        if (M[ar][ac] !== null) return;
+        for (var a = -2; a <= 2; a++) for (var b = -2; b <= 2; b++) M[ar + a][ac + b] = (a === -2 || a === 2 || b === -2 || b === 2 || (a === 0 && b === 0));
+      }); });
+      for (k = 8; k < size - 8; k++) { if (M[k][6] === null) M[k][6] = k % 2 === 0; if (M[6][k] === null) M[6][k] = k % 2 === 0; }
+      var fmt = bchRem((0 << 3) | mask, 0x537, 10); fmt = (((0 << 3) | mask) << 10 | fmt) ^ 0x5412;
+      for (k = 0; k < 15; k++) {
+        var bit = ((fmt >> k) & 1) === 1;
+        if (k < 6) M[k][8] = bit; else if (k < 8) M[k + 1][8] = bit; else M[size - 15 + k][8] = bit;
+        if (k < 8) M[8][size - k - 1] = bit; else if (k < 9) M[8][15 - k - 1 + 1] = bit; else M[8][15 - k - 1] = bit;
+      }
+      M[size - 8][8] = true;
+      if (v >= 7) {
+        var vi = (v << 12) | bchRem(v, 0x1f25, 12);
+        for (k = 0; k < 18; k++) { var vb = ((vi >> k) & 1) === 1; M[Math.floor(k / 3)][k % 3 + size - 8 - 3] = vb; M[k % 3 + size - 8 - 3][Math.floor(k / 3)] = vb; }
+      }
+      var inc = -1, row = size - 1, bi = 7, by = 0;
+      for (c = size - 1; c > 0; c -= 2) {
+        if (c === 6) c -= 1;
+        for (;;) {
+          for (k = 0; k < 2; k++) {
+            if (M[row][c - k] === null) {
+              var dark = false; if (by < data.length) dark = ((data[by] >>> bi) & 1) === 1;
+              if (MASKS[mask](row, c - k)) dark = !dark;
+              M[row][c - k] = dark; bi--; if (bi === -1) { by++; bi = 7; }
+            }
+          }
+          row += inc; if (row < 0 || size <= row) { row -= inc; inc = -inc; break; }
+        }
+      }
+      return M;
+    }
+    function penalty(M, size) {
+      var p = 0, r, c, run, dark = 0;
+      for (var pass = 0; pass < 2; pass++) {
+        for (r = 0; r < size; r++) {
+          run = 1;
+          for (c = 1; c < size; c++) {
+            var a = pass ? M[c][r] : M[r][c], b = pass ? M[c - 1][r] : M[r][c - 1];
+            if (a === b) { run++; if (run === 5) p += 3; else if (run > 5) p++; } else run = 1;
+          }
+        }
+      }
+      for (r = 0; r < size - 1; r++) for (c = 0; c < size - 1; c++) { var q = M[r][c]; if (q === M[r][c + 1] && q === M[r + 1][c] && q === M[r + 1][c + 1]) p += 3; }
+      for (r = 0; r < size; r++) for (c = 0; c < size; c++) if (M[r][c]) dark++;
+      p += Math.floor(Math.abs(dark * 100 / (size * size) - 50) / 5) * 10;
+      return p;
+    }
+    return { build: build };
+  })();
+  function qrToCanvas(text, px) {
+    var M = QR.build(text); if (!M) return null;
+    var n = M.length, q = 4, sc = Math.max(2, Math.floor(px / (n + q * 2))), cv = document.createElement('canvas'), w = (n + q * 2) * sc;
+    cv.width = w; cv.height = w; var c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, w, w); c.fillStyle = '#000';
+    for (var r = 0; r < n; r++) for (var k = 0; k < n; k++) if (M[r][k]) c.fillRect((k + q) * sc, (r + q) * sc, sc, sc);
+    return cv;
+  }
+
+  /* ================= v14: simple branded layout, roles, More, My page, bill + UPI ================= */
+  var LANG = 'en', THEME = 'auto';
+  try { LANG = localStorage.getItem('thanima-lang') || 'en'; THEME = localStorage.getItem('thanima-theme') || 'auto'; } catch (e) { /* ignore */ }
+  function applyTheme() { var de = document.documentElement; if (THEME === 'auto') de.removeAttribute('data-theme'); else de.setAttribute('data-theme', THEME); }
+  applyTheme();
+
+  var ML = {
+    'Today': 'ഇന്ന്', 'Shops': 'കടകൾ', 'Stock': 'സ്റ്റോക്ക്', 'Order': 'ഓർഡർ', 'Staff': 'സ്റ്റാഫ്', 'Report': 'റിപ്പോർട്ട്', 'More': 'കൂടുതൽ', 'My page': 'എന്റെ പേജ്', 'Tasks': 'പണികൾ',
+    'Sale': 'വിൽപ്പന', 'Cash received': 'കിട്ടിയ പണം', 'Credit': 'കടം', 'Return': 'റിട്ടേൺ', 'Expense': 'ചെലവ്', 'Receivable': 'കിട്ടാനുള്ളത്', 'Payable': 'കൊടുക്കാനുള്ളത്', 'Cash in hand': 'കയ്യിലെ പണം',
+    '+ Expense': '+ ചെലവ്', '+ Shop': '+ കട', '+ Route': '+ റൂട്ട്', 'Routes': 'റൂട്ടുകൾ', 'Select route (one or more):': 'റൂട്ട് തിരഞ്ഞെടുക്കുക:', 'Cancel': 'വേണ്ട', 'Save': 'സേവ് ചെയ്യുക', 'Close': 'അടയ്ക്കുക',
+    'Sale done': 'വിൽപ്പന കഴിഞ്ഞു', 'Did not buy': 'വാങ്ങിയില്ല', 'No entry': 'എൻട്രി ഇല്ല', 'Yet to visit': 'പോകാനുണ്ട്', 'Today’s entries': 'ഇന്നത്തെ എൻട്രികൾ', 'Items sold today': 'ഇന്ന് വിറ്റ സാധനങ്ങൾ', 'Today’s expenses': 'ഇന്നത്തെ ചെലവുകൾ',
+    'Language': 'ഭാഷ', 'Appearance': 'കാഴ്ച', 'Light': 'ലൈറ്റ്', 'Dark': 'ഡാർക്ക്', 'Auto': 'ഓട്ടോ', 'Log out': 'ലോഗ് ഔട്ട്', 'Refresh': 'റിഫ്രഷ്', 'Settings': 'സെറ്റിങ്സ്', 'Business & UPI': 'സ്ഥാപനവും UPI-യും',
+    'Production order': 'പ്രൊഡക്ഷൻ ഓർഡർ', 'Backup & restore': 'ബാക്കപ്പ്', 'Day statement on WhatsApp': 'ഇന്നത്തെ കണക്ക് WhatsApp-ൽ', 'Menu bar position': 'താഴത്തെ ബാർ മാറ്റുക',
+    'Salary slip': 'ശമ്പള സ്ലിപ്പ്', 'Base salary': 'അടിസ്ഥാന ശമ്പളം', 'Total': 'ആകെ', 'Balance': 'ബാക്കി', 'Daily earnings': 'ദിവസവരുമാനം', 'By item': 'ഐറ്റം തിരിച്ച്',
+    'Send bill': 'ബിൽ അയക്കുക', 'Bill': 'ബിൽ', 'Items': 'സാധനങ്ങൾ', 'Add item': 'ഐറ്റം ചേർക്കുക', 'Old balance': 'പഴയ ബാക്കി', 'Balance after this': 'ഇതിനു ശേഷം ബാക്കി', 'Balance now': 'ഇപ്പോഴത്തെ ബാക്കി', 'Save entry': 'എൻട്രി സേവ് ചെയ്യുക',
+    'Production tasks': 'ഉണ്ടാക്കാനുള്ളവ', 'Made': 'ഉണ്ടാക്കി', 'Shops': 'കടകൾ', 'New shop': 'പുതിയ കട', 'Loading…': 'ലോഡ് ആകുന്നു…', 'Shop name': 'കടയുടെ പേര്', 'Phone / WhatsApp number': 'ഫോൺ / WhatsApp നമ്പർ', 'Place': 'സ്ഥലം', 'Route': 'റൂട്ട്',
+    'Edit shop': 'കട മാറ്റുക', 'Delete this shop': 'ഈ കട ഒഴിവാക്കുക', 'Stock': 'സ്റ്റോക്ക്', 'Purchase / stock': 'പർച്ചേസ് / സ്റ്റോക്ക്', 'Note': 'കുറിപ്പ്', 'Amount (₹)': 'തുക (₹)', 'Date': 'തീയതി', 'Delete': 'ഒഴിവാക്കുക', 'Sure? Delete': 'ഉറപ്പാണോ? ഒഴിവാക്കുക'
+  };
+  var tx = function (s) { return LANG === 'ml' && ML[s] ? ML[s] : s; };
+  function trDom(root) {
+    if (LANG !== 'ml' || !root) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, list = [];
+    while ((n = w.nextNode())) list.push(n);
+    list.forEach(function (t) { var k = t.nodeValue.trim(); if (k && ML[k]) t.nodeValue = t.nodeValue.replace(k, ML[k]); });
+    root.querySelectorAll('input[placeholder]').forEach(function (i) { var p = i.getAttribute('placeholder'); if (ML[p]) i.setAttribute('placeholder', ML[p]); });
+  }
+
+  /* settings document (kept in the shared "runs" collection so every phone reads it) */
+  function setDoc() { for (var i = 0; i < S.runs.length; i++) if (S.runs[i].id === '_settings') return S.runs[i]; return {}; }
+  function bizInfo() {
+    var c = (window.THANIMA_CONFIG && window.THANIMA_CONFIG.business) || {}, d = setDoc();
+    return { name: d.biz || c.name || BRAND, addr: d.addr || c.address || '', phone: d.phone || c.phone || '', upi: d.upi || c.upi || '', upiName: d.upiName || c.upiName || d.biz || c.name || BRAND };
+  }
+  function myStaff() { var id = meStaffId(); return id ? staffById(id) : null; }
+  function myRole() { if (OWNER) return 'owner'; var s = myStaff(); return s ? s.role : 'sales'; }
+  var canSell = function () { var r = myRole(); return r === 'owner' || r === 'sales' || r === 'both'; };
+  var canMake = function () { var r = myRole(); return r === 'owner' || r === 'production' || r === 'both'; };
+
+  /* staff see only their own routes / shops */
+  function routeVisible(r, d) {
+    if (OWNER) return true;
+    var me = meStaffId(); if (!me) return true;
+    var sid = routeStaffFor(r.id, d || S.date);
+    return !sid || sid === me;
+  }
+  function shopVisible(sh) {
+    if (OWNER || !meStaffId()) return true;
+    if (!sh.routeId) return true;
+    var r = routeById(sh.routeId); return !r || routeVisible(r, S.date) || routeVisible(r, todayStr()) || (r.staffId === meStaffId());
+  }
+  var _entryStaff = defaultEntryStaff;
+  defaultEntryStaff = function (shopId) { var me = OWNER ? '' : meStaffId(); return me || _entryStaff(shopId); };
+
+  /* ---------- navigation ---------- */
+  function navItems() {
+    var r = myRole();
+    if (r === 'owner') return [['today', 'Today'], ['shops', 'Shops'], ['stock', 'Stock'], ['staff', 'Staff'], ['report', 'Report'], ['more', 'More']];
+    if (r === 'production') return [['tasks', 'Tasks'], ['mine', 'My page'], ['more', 'More']];
+    if (r === 'both') return [['today', 'Today'], ['tasks', 'Tasks'], ['shops', 'Shops'], ['stock', 'Stock'], ['mine', 'My page'], ['more', 'More']];
+    return [['today', 'Today'], ['shops', 'Shops'], ['stock', 'Stock'], ['mine', 'My page'], ['more', 'More']];
+  }
+  ICONS.more = '<svg viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18.5" cy="12" r="1.6"/></svg>';
+  ICONS.mine = ICONS.staff; ICONS.tasks = ICONS.orders;
+  nav = function () {
+    var items = navItems();
+    return '<nav class="nav" aria-label="Main menu"><div class="nav-in" style="grid-template-columns:repeat(' + items.length + ', minmax(0, 1fr))">' + items.map(function (it) {
+      return '<button data-act="tab" data-tab="' + it[0] + '"' + (S.tab === it[0] ? ' aria-current="page"' : '') + '>' + ICONS[it[0]] + '<span>' + tx(it[1]) + '</span></button>';
+    }).join('') + '</div></nav>';
+  };
+
+  function statusDot() {
+    var ok = S.mode === 'cloud' && S.loaded && !(typeof WR !== 'undefined' && (WR.n > 0 || WR.err)) && navigator.onLine !== false;
+    return '<button class="sdot ' + (ok ? 'on' : 'off') + '" data-act="refresh" aria-label="' + (ok ? 'Online' : 'Not synced') + '"></button>';
+  }
+
+  render = function () {
+    var navs = navItems().map(function (x) { return x[0]; });
+    if (navs.indexOf(S.tab) < 0 && ['orders', 'staff', 'report'].indexOf(S.tab) < 0) S.tab = navs[0];
+    if (!OWNER && (S.tab === 'staff' || S.tab === 'report')) S.tab = navs[0];
+    if (S.tab === 'orders' && !OWNER && !canMake()) S.tab = navs[0];
+    var a = document.activeElement, fid = a && a.id && $('#app').contains(a) ? a.id : null;
+    var ss = null; try { ss = fid ? a.selectionStart : null; } catch (e) { ss = null; }
+    var body = S.tab === 'today' ? vToday() : S.tab === 'shops' ? (S.shopId ? vShop() : S.shopsView === 'routes' ? vRoutes() : S.shopsView === 'edit' ? vShopsEdit() : vShops()) :
+      S.tab === 'stock' ? vStock() : S.tab === 'orders' ? vOrders() : S.tab === 'staff' ? vStaff() : S.tab === 'more' ? vMore() : S.tab === 'mine' ? vMine() : S.tab === 'tasks' ? vTasks() : vReport();
+    var me = myStaff(), hello = OWNER ? 'Owner' : me ? me.name : '';
+    $('#app').innerHTML = '<div class="wrap"><div class="top"><div class="brandrow"><img class="logo" src="' + LOGO + '" alt="Thanima Foods"><span class="brand">Food Agency</span></div>' +
+      '<div class="hi">' + (hello ? esc(hello) : '') + statusDot() + '</div></div>' + banner() + body + '</div>' + nav();
+    trDom($('#app'));
+    if (fid) {
+      var n = document.getElementById(fid);
+      if (n && n !== document.activeElement) { n.focus(); if (ss != null) { try { n.setSelectionRange(ss, ss); } catch (e) { /* ignore */ } } }
+    }
+    maybeStaffSubs();
+  };
+  var _openSheet = openSheet;
+  openSheet = function (html, f) { _openSheet(html, f); trDom($('#panel')); };
+
+  /* staff can see their own salary documents only (needs the updated Firestore rules; harmless if not updated) */
+  var STAFF_SUB = false;
+  function maybeStaffSubs() {
+    if (STAFF_SUB || OWNER || !S.loaded || !meStaffId() || typeof FS === 'undefined' || !FS) return;
+    STAFF_SUB = true; var me = meStaffId();
+    try {
+      UNSUBS.push(FS.collection('staffpay').doc(me).onSnapshot(function (d) { S.staffpay = d.exists ? [Object.assign({ id: d.id }, d.data())] : []; render(); }, function () { /* not allowed yet */ }));
+      UNSUBS.push(FS.collection('payouts').where('staffId', '==', me).onSnapshot(function (q) { S.payouts = q.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); render(); }, function () { /* not allowed yet */ }));
+    } catch (e) { /* ignore */ }
+  }
+
+  /* ---------- Today ---------- */
+  function visShops() { return S.shops.filter(shopVisible); }
+  function visRoutes() { return S.routes.filter(function (r) { return routeVisible(r, S.date); }); }
+  function dashTile(label, val, cls, extra) { return '<div class="dt ' + (cls || '') + '"><small>' + tx(label) + '</small><b class="num">' + val + '</b>' + (extra || '') + '</div>'; }
+
+  vToday = function () {
+    var d = S.date, vs = {}; visShops().forEach(function (s) { vs[s.id] = true; });
+    var me = OWNER ? '' : meStaffId();
+    var es = S.entries.filter(function (e) { return e.date === d && vs[e.shopId] && (!me || !e.staffId || e.staffId === me); }).sort(byDate).reverse();
+    var exs = S.expenses.filter(function (x) { return x.date === d && (OWNER || !x.routeId || routeVisible(routeById(x.routeId) || { id: x.routeId }, d)); });
+    var sm = sums(es), ex = totalExp(exs), cash = sm.payment - ex;
+    var credit = Math.max(0, sm.sale - sm['return'] - sm.payment), rec = 0;
+    visShops().forEach(function (s) { var b = balanceOf(s.id); if (b > 0) rec += b; });
+    var wd = String(parse(d).getDay()), vr = visRoutes();
+    var rts = S.pick[d] ? vr.filter(function (r) { return S.pick[d].indexOf(r.id) >= 0; }).sort(byName) : vr.filter(function (r) { return routeDue(r, d) || routeStat(r, d).n > 0 || runOf(r.id, d) || S.extra[r.id + '|' + d]; }).sort(byName);
+    var loose = visShops().filter(function (s) {
+      if (S.routes.length && s.routeId && routeById(s.routeId)) return false;
+      if (!S.routes.length) return true;
+      return (s.day !== '' && s.day != null && String(s.day) === wd) || es.some(function (e) { return e.shopId === s.id; });
+    }).sort(byName);
+    var sold = soldByItem(es), soldKeys = Object.keys(sold);
+
+    var h = dateBar();
+    h += '<section class="dash14">' + dashTile('Sale', fmt(sm.sale), 'main') + dashTile('Cash received', fmt(sm.payment), 'ok') + dashTile('Credit', fmt(credit), 'due') +
+      dashTile('Receivable', fmt(rec), 'due') + dashTile('Return', fmt(sm['return']), 'ret') +
+      '<div class="dt"><small>' + tx('Expense') + '</small><b class="num">' + fmt(ex) + '</b><button class="xbtn" data-act="add-exp">' + tx('+ Expense') + '</button></div></section>';
+    if (OWNER) h += '<div class="cashline ' + (cash < 0 ? 'neg' : '') + '"><span>' + tx('Cash in hand') + ' <i>(' + tx('Cash received') + ' − ' + tx('Expense') + ')</i></span><b class="num">' + (cash < 0 ? '−' : '') + fmt(cash) + '</b></div>';
+
+    h += '<div class="sec"><h2>' + tx('Routes') + '</h2><span class="sechead"><button class="btn sm" data-act="add-route">' + tx('+ Route') + '</button><button class="btn sm" data-act="add-shop">' + tx('+ Shop') + '</button></span></div>';
+    if (vr.length > 1) h += '<div class="chips" style="margin-bottom:10px">' + vr.slice().sort(byName).map(function (r) {
+      var on = rts.some(function (x) { return x.id === r.id; });
+      return '<button class="filter" data-act="pick-route" data-id="' + esc(r.id) + '" aria-pressed="' + on + '">' + esc(r.name) + '</button>';
+    }).join('') + (S.pick[d] ? '<button class="filter" data-act="pick-route" data-id="_due">' + tx('Today') + '</button>' : '') + '</div>';
+    if (rts.length) h += rts.map(function (r) { return routeBlock2(r, d); }).join('');
+    else if (S.routes.length) h += '<div class="empty">' + esc(longDate(d)) + ' — no route due. Pick a route above if needed.</div>';
+    else if (!(S.mode === 'cloud' && !S.loaded) && !S.shops.length) h += '<div class="empty"><div>Add routes and shops first. Then each day the shops of the routes due that day will appear here.</div><div class="two" style="width:100%"><button class="btn primary" data-act="add-route">+ Route</button><button class="btn primary" data-act="add-shop">+ Shop</button></div></div>';
+    if (loose.length) h += '<div class="sec"><h2>' + (S.routes.length ? 'Shops without route' : tx('Shops')) + '</h2></div><ul class="list tiles">' + loose.map(function (s) { return shopTile(s, d); }).join('') + '</ul>';
+
+    h += '<div class="sec"><h2>' + tx('Today’s entries') + '</h2><span class="muted sm">' + es.length + '</span></div>';
+    if (!(S.mode === 'cloud' && !S.loaded)) h += es.length ? '<ul class="list">' + es.map(function (e) { return entryRow(e); }).join('') + '</ul>' : '<div class="empty">No entries yet for this day.</div>';
+    if (soldKeys.length) h += '<div class="sec"><h2>' + tx('Items sold today') + '</h2></div><div class="tablewrap"><table><tbody>' + soldKeys.sort(function (a, b) { return sold[b] - sold[a]; }).map(function (k) {
+      return '<tr><td>' + esc(itemName(k)) + '</td><td class="n">' + qf(sold[k]) + ' ' + esc(unitOf(k)) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    if (exs.length) h += '<div class="sec"><h2>' + tx('Today’s expenses') + '</h2></div><ul class="list">' + exs.map(expRow).join('') + '</ul>';
+    return h;
+  };
+  function routeBlock2(r, d) {
+    var shops = shopsOfRoute(r.id), st = routeStat(r, d), c = { sale: 0, nobuy: 0, other: 0, none: 0 };
+    var tiles = shops.map(function (sh) { c[shopDay(sh.id, d).status]++; return shopTile(sh, d); });
+    var sid = routeStaffFor(r.id, d), veh = routeVehicleFor(r.id, d);
+    var h = '<section class="rblock"><div class="rhead"><div style="min-width:0"><div class="sname">' + esc(r.name) + '</div><div class="muted sm">' + esc(staffLabel(sid)) + (veh ? ' · ' + esc(veh) : '') + '</div></div>' +
+      '<div class="bal due"><small>' + tx('Sale') + '</small><b class="num">' + fmt(st.sale) + '</b></div></div>';
+    h += '<div class="chips"><span class="chip ok">' + c.sale + ' ✓</span><span class="chip nobuy">' + c.nobuy + ' ✕</span><span class="chip red">' + c.none + ' left</span><span class="chip">' + shops.length + ' ' + tx('Shops') + '</span></div>';
+    h += shops.length ? '<ul class="list tiles">' + tiles.join('') + '</ul>' : '<div class="empty">No shops on this route yet.</div>';
+    return h + '</section>';
+  }
+
+  /* ---------- shop card: one combined entry (sale + return + cash) ---------- */
+  var scN = 0;
+  function itemDL() { return '<datalist id="itemdl">' + S.items.slice().sort(byName).map(function (it) { return '<option value="' + esc(it.name) + '"></option>'; }).join('') + '</datalist>'; }
+  function itemByName(n) { n = String(n || '').trim().toLowerCase(); for (var i = 0; i < S.items.length; i++) if ((S.items[i].name || '').trim().toLowerCase() === n) return S.items[i]; return null; }
+  function scLine(box) {
+    var el = document.getElementById(box); if (!el) return; scN++;
+    var div = document.createElement('div'); div.className = 'line sc';
+    div.innerHTML = '<input class="l_name" type="text" list="itemdl" placeholder="Search item" aria-label="Item" autocomplete="off">' +
+      '<input class="l_qty" type="number" inputmode="decimal" min="0" step="any" placeholder="Qty" aria-label="Quantity">' +
+      '<input class="l_price" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Price" aria-label="Price">' +
+      '<button type="button" class="icon-btn lx" aria-label="Remove row">×</button><div class="lt muted sm"></div>';
+    el.appendChild(div);
+  }
+  function scRead(box) {
+    var out = [];
+    document.querySelectorAll('#' + box + ' .line').forEach(function (row) {
+      var it = itemByName(row.querySelector('.l_name').value), q = parseFloat(row.querySelector('.l_qty').value), p = parseFloat(row.querySelector('.l_price').value);
+      if (it && isFinite(q) && q > 0) out.push({ i: it.id, q: q, p: isFinite(p) ? p : 0, c: Number(it.scomm) || 0 });
+    });
+    return out;
+  }
+  var lineSum = function (ls) { return r2(ls.reduce(function (a, l) { return a + l.q * l.p; }, 0)); };
+  function scUpdate() {
+    var f = document.getElementById('scForm'); if (!f) return;
+    var sid = f.dataset.shop, sl = scRead('sc_sale'), rl = scRead('sc_ret'), cash = parseFloat(document.getElementById('sc_cash').value) || 0;
+    var man = document.getElementById('sc_man'), saleAmt = sl.length ? lineSum(sl) : (man ? (parseFloat(man.value) || 0) : 0), retAmt = rl.length ? lineSum(rl) : 0;
+    var after = balanceOf(sid) + saleAmt - retAmt - cash;
+    document.querySelectorAll('#scForm .line').forEach(function (row) {
+      var it = itemByName(row.querySelector('.l_name').value), q = parseFloat(row.querySelector('.l_qty').value), p = parseFloat(row.querySelector('.l_price').value), lt = row.querySelector('.lt');
+      if (lt) lt.textContent = it && isFinite(q) && isFinite(p) ? '= ' + fmt(q * p) : (it ? '' : '');
+    });
+    document.getElementById('sc_tot').innerHTML = '<div class="srow"><span>' + tx('Sale') + '</span><b class="num">' + fmt(saleAmt) + '</b></div>' + (retAmt ? '<div class="srow ret"><span>' + tx('Return') + '</span><b class="num">− ' + fmt(retAmt) + '</b></div>' : '') +
+      (cash ? '<div class="srow ok"><span>' + tx('Cash received') + '</span><b class="num">− ' + fmt(cash) + '</b></div>' : '') +
+      '<div class="srow big ' + (after > 0 ? 'due' : after < 0 ? 'owe' : '') + '"><span>' + tx('Balance after this') + '</span><b class="num">' + (after < 0 ? '−' : '') + fmt(after) + '</b></div>';
+  }
+  function openShopCard(id) {
+    var s = shopById(id); if (!s) return;
+    var d = S.date, x = shopDay(id, d), cur = balanceOf(id), sid = esc(id);
+    var chip = x.status === 'sale' ? '<span class="chip ok">✓ ' + tx('Sale done') + '</span>' : x.status === 'nobuy' ? '<span class="chip nobuy">' + tx('Did not buy') + '</span>' : x.status === 'other' ? '<span class="chip due">Cash / return</span>' : '';
+    var meta = [s.routeId ? routeName(s.routeId) : '', s.area, s.phone].filter(Boolean).join(' · ');
+    var h = '<form id="scForm" autocomplete="off" data-shop="' + sid + '" data-date="' + d + '"><div class="stop"><h2 id="ptitle">' + esc(s.name) + '</h2>' + chip + '</div>' +
+      (meta ? '<div class="muted sm" style="margin:-6px 0 8px">' + esc(meta) + '</div>' : '') + itemDL() +
+      '<div class="balcard ' + (cur > 0 ? 'due' : cur < 0 ? 'owe' : '') + '"><span>' + tx('Balance now') + '</span><b class="num">' + (cur < 0 ? '−' : '') + fmt(cur) + '</b></div>';
+    if (x.sale > 0 || x.ret > 0 || x.payment > 0) {
+      h += '<div class="muted sm" style="margin:6px 0">' + esc(longDate(d)) + ': ' + (x.sale ? tx('Sale') + ' ' + fmt(x.sale) + '  ' : '') + (x.ret ? tx('Return') + ' ' + fmt(x.ret) + '  ' : '') + (x.payment ? tx('Cash received') + ' ' + fmt(x.payment) : '') + '</div>';
+      if (x.sale > 0) h += '<button type="button" class="btn block" data-act="bill-open" data-shop="' + sid + '" data-date="' + d + '">' + tx('Send bill') + ' · PDF + WhatsApp</button>';
+    }
+    h += '<label class="l">' + tx('Items') + '</label><div id="sc_sale"></div><button type="button" class="btn sm" data-act="sc-add" data-box="sc_sale">+ ' + tx('Add item') + '</button>';
+    if (!S.items.length) h += '<label class="l" for="sc_man">Sale amount (₹)</label><input id="sc_man" type="number" inputmode="decimal" min="0" step="0.01">';
+    h += '<details class="retbox"><summary>' + tx('Return') + '</summary><div id="sc_ret"></div><button type="button" class="btn sm" data-act="sc-add" data-box="sc_ret">+ ' + tx('Add item') + '</button></details>';
+    h += '<label class="l" for="sc_cash">' + tx('Cash received') + ' (₹)</label><input id="sc_cash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">';
+    if (OWNER) h += '<label class="l" for="sc_staff">Staff</label><select id="sc_staff"><option value="">Not recording who</option>' + staffOptions('sales', defaultEntryStaff(id)) + '</select>';
+    h += '<input id="sc_note" type="text" placeholder="Note" style="margin-top:8px"><div id="sc_tot" class="ssum" style="margin-top:10px"></div>';
+    h += '<div class="fa"><button type="button" class="btn" data-act="close">' + tx('Cancel') + '</button><button type="submit" class="btn primary">' + tx('Save entry') + '</button></div>';
+    h += '<button type="button" class="btn block' + (x.nobuy ? ' nb-on' : '') + '" data-act="nobuy2" data-shop="' + sid + '" style="margin-top:8px">' + (x.nobuy ? tx('Did not buy') + ' ✕ (tap to undo)' : tx('Did not buy')) + '</button>';
+    h += '<div class="two" style="margin-top:8px"><button type="button" class="btn" data-act="ask" data-shop="' + sid + '">Ask for order</button><button type="button" class="btn" data-act="open-shop" data-id="' + sid + '">Full shop page</button></div></form>';
+    openSheet(h); scLine('sc_sale'); scUpdate();
+  }
+  function submitShopCard(f, fail, done) {
+    var sid = f.dataset.shop, d = f.dataset.date, sl = scRead('sc_sale'), rl = scRead('sc_ret'), cash = parseFloat(document.getElementById('sc_cash').value) || 0;
+    var man = document.getElementById('sc_man'), saleAmt = sl.length ? lineSum(sl) : (man ? (parseFloat(man.value) || 0) : 0), retAmt = lineSum(rl);
+    if (!(saleAmt > 0) && !(retAmt > 0) && !(cash > 0)) return fail('Enter an item, return or cash first');
+    var sh = shopById(sid), stv = document.getElementById('sc_staff'), staff = stv ? stv.value : (OWNER ? '' : meStaffId()), note = document.getElementById('sc_note').value.trim(), t0 = Date.now(), docs = [];
+    var mk = function (type, amount, lines, k) { var o = { id: uid(), shopId: sid, type: type, amount: amount, date: d, note: note, createdAt: t0 + k }; if (lines && lines.length) o.lines = lines; if (sh && sh.routeId) o.routeId = sh.routeId; if (staff) o.staffId = staff; docs.push(o); };
+    if (saleAmt > 0) mk('sale', saleAmt, sl, 0);
+    if (retAmt > 0) mk('return', retAmt, rl, 1);
+    if (cash > 0) mk('payment', cash, null, 2);
+    docs.reduce(function (p, o) { return p.then(function (ok) { return ok === false ? false : saveDoc('entries', o); }); }, Promise.resolve(true)).then(function (ok) {
+      if (!ok) { fail('Could not save'); return; }
+      closeSheet(); toast(tx('Save entry') + ' ✓');
+      if (saleAmt > 0) openBill(sid, d);
+    });
+  }
+
+  /* ---------- bill (image -> PDF) ---------- */
+  var BILL = null;
+  function invoiceNo(sid, d) {
+    var first = {}; S.entries.forEach(function (e) { if (e.date === d && e.type === 'sale') { var c = e.createdAt || 0; if (first[e.shopId] == null || c < first[e.shopId]) first[e.shopId] = c; } });
+    var ids = Object.keys(first).sort(function (a, b) { return first[a] - first[b]; }), k = ids.indexOf(sid) + 1;
+    return 'TH' + d.slice(2, 4) + d.slice(5, 7) + d.slice(8, 10) + '-' + pad(k || 1);
+  }
+  function billData(sid, d) {
+    var s = shopById(sid), x = shopDay(sid, d), old = balAt(sid, d, false), bal = balAt(sid, d, true);
+    return { s: s, d: d, x: x, old: old, bal: bal, sales: dayLines(sid, d, 'sale'), rets: dayLines(sid, d, 'return'), no: invoiceNo(sid, d), biz: bizInfo() };
+  }
+  function upiLink(b, amt) {
+    if (!b.biz.upi) return '';
+    return 'upi://pay?pa=' + encodeURIComponent(b.biz.upi).replace(/%40/g, '@') + '&pn=' + encodeURIComponent(b.biz.upiName) + (amt > 0 ? '&am=' + amt.toFixed(2) : '') + '&cu=INR&tn=' + encodeURIComponent('Bill ' + b.no);
+  }
+  function billText(b) {
+    var m = 'നമസ്കാരം ' + b.s.name + ',\n' + b.biz.name + ' - ബിൽ ' + b.no + ' (' + mlDate(b.d) + ')\n';
+    if (b.x.sale > 0) m += '\nവിൽപ്പന:\n' + b.sales.map(lineMl).join('\n') + '\nവിൽപ്പന ആകെ: ' + fmt(b.x.sale) + '\n';
+    if (b.x.ret > 0) m += '\nതിരികെ (Return): ' + fmt(b.x.ret) + '\n';
+    if (b.x.payment > 0) m += 'ലഭിച്ച തുക: ' + fmt(b.x.payment) + '\n';
+    m += '\nപഴയ ബാക്കി: ' + fmt(b.old) + '\n' + (b.bal < 0 ? 'ഞങ്ങൾ തരാനുള്ള തുക: ' : 'ഇപ്പോഴത്തെ ബാക്കി: ') + fmt(b.bal) + '\n';
+    if (b.bal > 0 && b.biz.upi) m += '\nUPI വഴി അടയ്ക്കാൻ: ' + b.biz.upi + '\n' + upiLink(b, b.bal) + '\n';
+    return m + '\nനന്ദി 🙏';
+  }
+  function drawBill(b) {
+    var W = 800, pad0 = 40, F = '"Noto Sans Malayalam", Inter, system-ui, sans-serif', rows = b.sales.length + b.rets.length;
+    var cv = document.createElement('canvas'), H = 640 + rows * 46 + (b.biz.upi ? 330 : 40) + (b.biz.addr ? 30 : 0);
+    cv.width = W; cv.height = H; var c = cv.getContext('2d');
+    c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+    c.fillStyle = '#17692A'; c.fillRect(0, 0, W, 150);
+    var y = 0, txt = function (t, x, yy, sz, col, wt, al) { c.font = (wt || 400) + ' ' + sz + 'px ' + F; c.fillStyle = col || '#14201C'; c.textAlign = al || 'left'; c.fillText(t, x, yy); };
+    txt(b.biz.name, pad0, 70, 38, '#fff', 700);
+    var sub = [b.biz.addr, b.biz.phone].filter(Boolean).join(' · '); if (sub) txt(sub, pad0, 108, 20, '#DDF3E3', 400);
+    txt('BILL / ബിൽ', W - pad0, 70, 30, '#F2B632', 700, 'right'); txt(b.no, W - pad0, 108, 22, '#fff', 500, 'right');
+    y = 200; txt(b.s.name, pad0, y, 32, '#14201C', 700); txt(mlDate(b.d), W - pad0, y, 22, '#566861', 500, 'right');
+    var meta = [b.s.area, b.s.phone].filter(Boolean).join(' · '); if (meta) { y += 34; txt(meta, pad0, y, 20, '#566861'); }
+    y += 40; c.fillStyle = '#EBF1EE'; c.fillRect(pad0, y, W - pad0 * 2, 44);
+    txt('Item / സാധനം', pad0 + 12, y + 30, 20, '#566861', 600); txt('Qty', 470, y + 30, 20, '#566861', 600, 'right'); txt('Rate', 580, y + 30, 20, '#566861', 600, 'right'); txt('Amount', W - pad0 - 12, y + 30, 20, '#566861', 600, 'right');
+    y += 44;
+    var line = function (l, sign) {
+      var q = Number(l.q) || 0, p = Number(l.p) || 0; y += 46;
+      var nm = itemName(l.i), maxw = 330; while (nm.length > 3 && c.measureText(nm).width > maxw) nm = nm.slice(0, -1);
+      txt((sign < 0 ? 'Return: ' : '') + nm, pad0 + 12, y - 14, 22, sign < 0 ? '#BE123C' : '#14201C'); txt(qf(q), 470, y - 14, 22, '#14201C', 400, 'right');
+      txt(p ? fmt(p) : '', 580, y - 14, 22, '#14201C', 400, 'right'); txt(p ? (sign < 0 ? '− ' : '') + fmt(q * p) : '', W - pad0 - 12, y - 14, 22, sign < 0 ? '#BE123C' : '#14201C', 600, 'right');
+      c.fillStyle = '#E3EAE6'; c.fillRect(pad0, y, W - pad0 * 2, 1);
+    };
+    b.sales.forEach(function (l) { line(l, 1); }); b.rets.forEach(function (l) { line(l, -1); });
+    y += 20;
+    var tot = function (k, v, col, bold) { y += 40; txt(k, W - pad0 - 260, y, bold ? 26 : 22, col || '#14201C', bold ? 700 : 400, 'right'); txt(v, W - pad0 - 12, y, bold ? 28 : 24, col || '#14201C', 700, 'right'); };
+    if (b.x.sale > 0) tot('Sale / വിൽപ്പന', fmt(b.x.sale));
+    if (b.x.ret > 0) tot('Return', '− ' + fmt(b.x.ret), '#BE123C');
+    if (b.x.payment > 0) tot('Cash received / കിട്ടിയത്', '− ' + fmt(b.x.payment), '#166534');
+    c.fillStyle = '#E3EAE6'; c.fillRect(pad0 + 300, y + 14, W - pad0 * 2 - 300, 1); y += 6;
+    tot('Old balance / പഴയ ബാക്കി', (b.old < 0 ? '−' : '') + fmt(b.old), '#566861');
+    tot(b.bal < 0 ? 'We owe you / തരാനുള്ളത്' : 'Balance due / ബാക്കി', (b.bal < 0 ? '−' : '') + fmt(b.bal), b.bal > 0 ? '#A85A06' : '#1E40AF', true);
+    y += 30;
+    if (b.biz.upi) {
+      var amt = b.bal > 0 ? b.bal : 0, q = qrToCanvas(upiLink(b, amt), 360);
+      c.fillStyle = '#F4F7F5'; c.fillRect(pad0, y, W - pad0 * 2, 270);
+      if (q) c.drawImage(q, pad0 + 20, y + 20, 230, 230);
+      txt('Pay by UPI / UPI വഴി അടയ്ക്കാം', pad0 + 280, y + 70, 26, '#17692A', 700);
+      txt(b.biz.upi, pad0 + 280, y + 118, 26, '#14201C', 600); txt(b.biz.upiName, pad0 + 280, y + 154, 20, '#566861');
+      txt(amt > 0 ? 'Scan to pay ' + fmt(amt) : 'Scan with any UPI app', pad0 + 280, y + 200, 22, '#14201C', 500);
+      y += 290;
+    }
+    y += 24; txt('Thank you! / നന്ദി 🙏', W / 2, y, 24, '#17692A', 600, 'center'); y += 30;
+    var out = document.createElement('canvas'); out.width = W; out.height = Math.min(H, y + 10);
+    out.getContext('2d').drawImage(cv, 0, 0); return out;
+  }
+  function pdfFromCanvas(cv) {
+    var b64 = cv.toDataURL('image/jpeg', 0.9).split(',')[1], bin = atob(b64), img = new Uint8Array(bin.length), i;
+    for (i = 0; i < bin.length; i++) img[i] = bin.charCodeAt(i);
+    var pw = 420, ph = Math.round(420 * cv.height / cv.width), enc = new TextEncoder(), parts = [], offs = [], len = 0;
+    var add = function (u) { parts.push(u); len += u.length; }, s = function (t) { add(enc.encode(t)); };
+    s('%PDF-1.4\n');
+    var obj = function (n, body, stream) { offs[n] = len; s(n + ' 0 obj\n' + body); if (stream) { s('\nstream\n'); add(stream); s('\nendstream'); } s('\nendobj\n'); };
+    obj(1, '<< /Type /Catalog /Pages 2 0 R >>'); obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    obj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pw + ' ' + ph + '] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>');
+    var cs = 'q ' + pw + ' 0 0 ' + ph + ' 0 0 cm /Im0 Do Q'; obj(4, '<< /Length ' + cs.length + ' >>', enc.encode(cs));
+    obj(5, '<< /Type /XObject /Subtype /Image /Width ' + cv.width + ' /Height ' + cv.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + img.length + ' >>', img);
+    var xr = len; s('xref\n0 6\n0000000000 65535 f \n'); for (i = 1; i <= 5; i++) s(String(offs[i]).padStart(10, '0') + ' 00000 n \n');
+    s('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF');
+    var out = new Uint8Array(len), p = 0; parts.forEach(function (u) { out.set(u, p); p += u.length; }); return out;
+  }
+  function openBill(sid, d) {
+    var s = shopById(sid); if (!s) return;
+    var b = billData(sid, d); if (!(b.x.sale > 0)) { toast('No sale to bill on this day'); return; }
+    var go = function () {
+      var cv = drawBill(b), pdf = pdfFromCanvas(cv), name = 'Bill-' + b.no + '.pdf', file = null;
+      try { file = new File([pdf], name, { type: 'application/pdf' }); } catch (e) { file = null; }
+      BILL = { b: b, pdf: pdf, name: name, file: file, text: billText(b) };
+      var can = false; try { can = !!(file && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { can = false; }
+      var h = '<div id="billSheet"><h2 id="ptitle">' + tx('Bill') + ' · ' + esc(s.name) + '</h2><img class="billimg" alt="Bill" src="' + cv.toDataURL('image/jpeg', 0.8) + '">' +
+        (b.biz.upi ? '' : '<div class="hint due">UPI ID not added yet. Add it in More → Settings to show a QR on the bill.</div>') +
+        (can ? '<button class="btn primary block" data-act="bill-share">Share PDF on WhatsApp</button>' : '') +
+        '<a class="btn ' + (can ? '' : 'primary ') + 'block wa" target="_blank" rel="noopener" style="margin-top:8px" href="' + esc(waHrefFor(s.phone, BILL.text)) + '">WhatsApp message' + (can ? '' : ' (with UPI)') + '</a>' +
+        '<div class="two" style="margin-top:8px"><button class="btn" data-act="bill-dl">Download PDF</button><button class="btn" data-act="close">' + tx('Close') + '</button></div>' +
+        (s.phone ? '' : '<div class="hint due">No phone number saved for this shop. Pick the contact in WhatsApp.</div>') + '</div>';
+      openSheet(h);
+    };
+    try { if (document.fonts && document.fonts.load) { Promise.all([document.fonts.load('600 22px "Noto Sans Malayalam"'), document.fonts.load('700 22px "Noto Sans Malayalam"')]).then(go, go); } else go(); } catch (e) { go(); }
+  }
+  function billShare() {
+    if (!BILL || !BILL.file) return;
+    navigator.share({ files: [BILL.file], text: BILL.text, title: BILL.name }).catch(function () { /* cancelled */ });
+  }
+  function billDownload() {
+    if (!BILL) return;
+    var u = URL.createObjectURL(new Blob([BILL.pdf], { type: 'application/pdf' })), a = document.createElement('a');
+    a.href = u; a.download = BILL.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 5000);
+  }
+
+  /* ---------- More ---------- */
+  function seg(act, key, cur, opts) { return '<div class="segs">' + opts.map(function (o) { return '<button type="button" class="seg2' + (cur === o[0] ? ' on' : '') + '" data-act="' + act + '" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>'; }
+  function vMore() {
+    var h = '<h1 class="page-title">' + tx('More') + '</h1>';
+    h += '<div class="mgroup"><div class="ml">' + tx('Language') + '</div>' + seg('lang', 'lang', LANG, [['ml', 'മലയാളം'], ['en', 'English']]) +
+      '<div class="ml">' + tx('Appearance') + '</div>' + seg('theme', 'theme', THEME, [['auto', tx('Auto')], ['light', tx('Light')], ['dark', tx('Dark')]]) + '</div>';
+    h += '<ul class="list mlist">';
+    var row = function (act, label, sub, data) { return '<li><button class="shop-card" data-act="' + act + '"' + (data || '') + '><div><div class="sname">' + label + '</div>' + (sub ? '<div class="muted sm">' + sub + '</div>' : '') + '</div><span class="chev">›</span></button></li>'; };
+    if (OWNER || canMake()) h += row('more-go', tx('Production order'), '', ' data-go="orders"');
+    if (canSell()) h += row('day-report', tx('Day statement on WhatsApp'), '');
+    if (OWNER) h += row('set-open', tx('Business & UPI'), bizInfo().upi ? esc(bizInfo().upi) : 'UPI ID not added');
+    if (OWNER) h += row('more-go', tx('Backup & restore'), '', ' data-go="backup"');
+    h += row('lift', tx('Menu bar position'), '') + row('refresh', tx('Refresh'), 'v14') + row('logout', tx('Log out'), esc(S.user || ''));
+    return h + '</ul>';
+  }
+  function openSettings() {
+    var b = bizInfo();
+    var h = '<form id="setForm" autocomplete="off"><h2 id="ptitle">' + tx('Business & UPI') + '</h2>' +
+      '<label class="l" for="b_name">Name on the bill</label><input id="b_name" type="text" value="' + esc(b.name) + '">' +
+      '<label class="l" for="b_addr">Address</label><input id="b_addr" type="text" value="' + esc(b.addr) + '">' +
+      '<label class="l" for="b_phone">Phone</label><input id="b_phone" type="tel" value="' + esc(b.phone) + '">' +
+      '<label class="l" for="b_upi">UPI ID (e.g. name@okhdfcbank)</label><input id="b_upi" type="text" autocapitalize="off" value="' + esc(b.upi) + '">' +
+      '<label class="l" for="b_upin">Name shown in the UPI app</label><input id="b_upin" type="text" value="' + esc(b.upiName) + '">' +
+      '<div class="hint">The QR on every bill pays the balance amount to this UPI ID.</div>' + FA() + '</form>';
+    openSheet(h, 'b_upi');
+  }
+
+  /* ---------- My page ---------- */
+  function earnRange(staffId, from, to) {
+    var r = { salesComm: 0, prodComm: 0, days: {} }, day = function (d) { return r.days[d] || (r.days[d] = { s: 0, p: 0 }); };
+    S.entries.forEach(function (e) {
+      if (e.staffId !== staffId || e.date < from || e.date > to) return;
+      var sg = e.type === 'sale' ? 1 : e.type === 'return' ? -1 : 0; if (!sg) return;
+      (e.lines || []).forEach(function (l) { var c = (Number(l.c) || 0) * (Number(l.q) || 0) * sg; r.salesComm += c; day(e.date).s += c; });
+    });
+    S.moves.forEach(function (m) { if (m.staffId !== staffId || m.kind !== 'purchase' || m.date < from || m.date > to) return; var c = (Number(m.qty) || 0) * (Number(m.rate) || 0); r.prodComm += c; day(m.date).p += c; });
+    return r;
+  }
+  function vMine() {
+    var st = myStaff();
+    if (!st) return '<h1 class="page-title">' + tx('My page') + '</h1><div class="empty">Your login is not linked to a staff record yet. Ask the owner to open Staff → your name → Edit and set your login ID.</div>';
+    var ym = S.smonth, m = statement(st, ym), td = todayStr();
+    var f = S.mfrom || ym + '-01', t = S.mto || td, er = earnRange(st.id, f, t), ds = Object.keys(er.days).sort();
+    var h = '<h1 class="page-title">' + esc(st.name) + '</h1><div class="muted sm" style="margin:-6px 0 10px">' + esc(ROLES[st.role] || '') + '</div>' + monthBar(ym);
+    h += '<div class="balbox ' + (m.due >= 0 ? 'owe' : 'due') + '"><span>' + (m.due >= 0 ? 'Payable this month' : 'Advance paid in excess') + '</span><b class="num">' + sgn(m.due) + '</b></div>';
+    h += '<div class="tablewrap"><table><tbody><tr><td>' + tx('Base salary') + '</td><td class="n">' + fmt(m.base) + '</td></tr>' +
+      (canSell() ? '<tr><td>Sales commission</td><td class="n">' + sgn(m.e.salesComm) + '</td></tr>' : '') + (canMake() ? '<tr><td>Production commission</td><td class="n">' + sgn(m.e.prodComm) + '</td></tr>' : '') +
+      '<tr><td><b>' + tx('Total') + '</b></td><td class="n"><b>' + sgn(m.gross) + '</b></td></tr><tr><td>− Advance</td><td class="n">' + fmt(m.adv) + '</td></tr><tr><td>− Salary paid</td><td class="n">' + fmt(m.paid) + '</td></tr></tbody><tfoot><tr><td>' + tx('Balance') + '</td><td class="n">' + sgn(m.due) + '</td></tr></tfoot></table></div>';
+    if (!S.staffpay.length && !S.payouts.length) h += '<div class="hint">Base salary and advances show here once the owner updates the Firebase rules (README). Commission always shows.</div>';
+    h += '<button class="btn block" data-act="slip-staff" data-id="' + esc(st.id) + '" style="margin-top:10px">' + tx('Salary slip') + '</button>';
+    h += '<div class="sec"><h2>Earnings between dates</h2></div><div class="f2"><div><label class="l" for="mf">From</label><input id="mf" type="date" value="' + f + '"></div><div><label class="l" for="mt">To</label><input id="mt" type="date" value="' + t + '"></div></div>';
+    h += '<div class="balbox owe"><span>Commission in this period</span><b class="num">' + sgn(er.salesComm + er.prodComm) + '</b></div>';
+    h += ds.length ? '<div class="tablewrap"><table><thead><tr><th>Day</th><th class="n">Sales</th><th class="n">Production</th><th class="n">' + tx('Total') + '</th></tr></thead><tbody>' + ds.map(function (k) { var x = er.days[k]; return '<tr><td>' + esc(shortDate(k)) + ' ' + DAYS[parse(k).getDay()] + '</td><td class="n">' + sgn(x.s) + '</td><td class="n">' + sgn(x.p) + '</td><td class="n">' + sgn(x.s + x.p) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<div class="empty">No earnings in this period.</div>';
+    return h;
+  }
+
+  /* ---------- production tasks ---------- */
+  function vTasks() {
+    var me = meStaffId(), needs = computeNeeds(), rows = [];
+    needs.forEach(function (g) { g.rows.forEach(function (r) { rows.push(r); }); });
+    var mine = rows.filter(function (r) { return OWNER || !me || !r.item.pstaff || r.item.pstaff === me; });
+    var h = '<h1 class="page-title">' + tx('Production tasks') + '</h1>';
+    h += mine.length ? '<ul class="list">' + mine.map(function (r) {
+      return '<li class="row-item task"><div class="tph">' + (r.item.photo ? '<img src="' + esc(r.item.photo) + '" alt="">' : '<span class="muted sm">—</span>') + '</div><div class="ri-main"><div class="sname">' + esc(r.item.name) + '</div><div class="muted sm">Stock ' + qf(r.stock) + ' · Target ' + qf(r.item.target) + '</div></div>' +
+        '<div class="ri-side"><div class="need num">' + qf(r.need) + ' ' + esc(r.item.unit || '') + '</div><button class="btn sm primary" data-act="add-move" data-item="' + esc(r.item.id) + '">' + tx('Made') + '</button></div></li>';
+    }).join('') + '</ul>' : '<div class="empty">' + (S.items.some(function (i) { return Number(i.target) > 0; }) ? 'Nothing to make right now. Stock is enough.' : 'No production target is set for any item yet.') + '</div>';
+    var td = todayStr(), ms = S.moves.filter(function (m) { return m.date === td && m.kind === 'purchase' && (OWNER || !me || m.staffId === me); });
+    if (ms.length) h += '<div class="sec"><h2>Made today</h2></div><ul class="list">' + ms.map(function (m) { return '<li class="row-item"><div class="ri-main"><div class="sname">' + esc(itemName(m.itemId)) + '</div></div><div class="ri-side"><b class="num">' + qf(m.qty) + '</b></div></li>'; }).join('') + '</ul>';
+    return h;
+  }
+
+  /* live updates inside the shop card and My page */
+  document.addEventListener('input', function (ev) {
+    var t = ev.target; if (!t.closest || !t.closest('#scForm')) return;
+    if (t.classList.contains('l_name')) { var it = itemByName(t.value), row = t.closest('.line'); if (it && row) { var p = row.querySelector('.l_price'); if (!p.value) p.value = it.price || ''; } }
+    scUpdate();
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.closest && t.closest('#scForm') && t.classList.contains('l_name')) { var it = itemByName(t.value), row = t.closest('.line'); if (it && row) { var p = row.querySelector('.l_price'); if (!p.value) p.value = it.price || ''; var q = row.querySelector('.l_qty'); if (!q.value) q.focus(); } scUpdate(); }
+    else if (t.id === 'mf' || t.id === 'mt') { S.mfrom = document.getElementById('mf').value; S.mto = document.getElementById('mt').value; render(); }
+  });
 
   /* product photos (stored small, used only in WhatsApp catalogue) */
   function handlePhoto(inp) {
@@ -1898,7 +2475,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     switch (a) {
       case 'tab': S.tab = el.dataset.tab; if (S.tab === 'shops') { S.shopId = null; S.shopsView = 'list'; S.rsel = ''; } if (S.tab === 'staff') S.staffId = null; if (S.tab === 'stock') S.stockView = 'stock'; closeSheet(); render(); window.scrollTo(0, 0); break;
       case 'rsub': S.rsub = el.dataset.s; render(); break;
-      case 'shop-sheet': openShopInfo(el.dataset.id); break;
+      case 'shop-sheet': openShopCard(el.dataset.id); break;
       case 'nobuy2': closeSheet(); toggleNoBuy(el.dataset.shop); break;
       case 'ask': openAsk(el.dataset.route || '', el.dataset.shop || ''); break;
       case 'cat-share': shareCatalogue(el.dataset.shop || '', el.dataset.route || ''); break;
@@ -1965,6 +2542,14 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
         break;
       case 'receive': receiveOrder(el.dataset.id); break;
       case 'export': exportFile(el.dataset.kind); break;
+      case 'lang': LANG = el.dataset.v; try { localStorage.setItem('thanima-lang', LANG); } catch (e) { /* ignore */ } render(); break;
+      case 'theme': THEME = el.dataset.v; try { localStorage.setItem('thanima-theme', THEME); } catch (e) { /* ignore */ } applyTheme(); render(); break;
+      case 'set-open': openSettings(); break;
+      case 'more-go': if (el.dataset.go === 'backup') { S.tab = 'report'; S.rsub = 'backup'; } else S.tab = el.dataset.go; render(); window.scrollTo(0, 0); break;
+      case 'sc-add': scLine(el.dataset.box); break;
+      case 'bill-open': openBill(el.dataset.shop, el.dataset.date); break;
+      case 'bill-share': billShare(); break;
+      case 'bill-dl': billDownload(); break;
       case 'close': closeSheet(); break;
       case 'del':
         if (S.del && S.del.kind === el.dataset.kind && S.del.id === el.dataset.id) { var k = S.del.kind, i = S.del.id; S.del = null; removeDoc(k, i).then(function (ok) { if (ok) toast('Deleted'); }); }
@@ -1976,7 +2561,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   document.addEventListener('click', function (ev) {
     var t = ev.target;
     if (t.id === 'e_addline') { addLine(); return; }
-    if (t.closest && t.closest('.lx')) { var row = t.closest('.line'); if (row) { row.remove(); recalcAmount(); } return; }
+    if (t.closest && t.closest('.lx')) { var row = t.closest('.line'); if (row) { row.remove(); recalcAmount(); scUpdate(); } return; }
     var CP = { w_copy: 'w_text', sl_copy: 'sl_text', dr_copy: 'dr_text', sf_copy: 'sf_text' };
     if (CP[t.id]) {
       var ta = document.getElementById(CP[t.id]);
@@ -2082,6 +2667,11 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     var fail = function (m) { toast(m); if (btn) btn.disabled = false; };
     var done = function (ok, msg) { if (ok) { closeSheet(); toast(msg); } else if (btn) btn.disabled = false; };
     var num = function (id) { var v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : 0; };
+    if (f.id === 'scForm') { submitShopCard(f, fail, done); return; }
+    if (f.id === 'setForm') {
+      saveDoc('runs', { id: '_settings', biz: document.getElementById('b_name').value.trim(), addr: document.getElementById('b_addr').value.trim(), phone: document.getElementById('b_phone').value.trim(), upi: document.getElementById('b_upi').value.trim().replace(/\s+/g, ''), upiName: document.getElementById('b_upin').value.trim(), createdAt: Date.now() }).then(function (ok) { done(ok, 'Saved'); });
+      return;
+    }
     if (f.id === 'entryForm') {
       var typ = f.querySelector('input[name=e_type]:checked').value;
       var lines = (typ === 'sale' || typ === 'return') ? collectLines() : [];
