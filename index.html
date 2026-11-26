@@ -1661,7 +1661,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   }
 
   /* ================= v14: simple branded layout, roles, More, My page, bill + UPI ================= */
-  var APP_VER = 'v14.4', LANG = 'en', THEME = 'auto';
+  var APP_VER = 'v14.5', LANG = 'en', THEME = 'auto';
   try { LANG = localStorage.getItem('thanima-lang') || 'en'; THEME = localStorage.getItem('thanima-theme') || 'auto'; } catch (e) { /* ignore */ }
   function applyTheme() { var de = document.documentElement; if (THEME === 'auto') de.removeAttribute('data-theme'); else de.setAttribute('data-theme', THEME); }
   applyTheme();
@@ -3048,7 +3048,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
           var run = function (p) {
             WR.n++; 
             p.then(function () { WR.n--; WR.err = ''; WR.ok = Date.now(); hideErr(); if (navigator.onLine !== false) toast('Saved to cloud ✓'); render(); })
-             .catch(function (e) { WR.n--; WR.err = (e && e.code) || 'unknown'; showErr(e); render(); });
+             .catch(function (e) { WR.n--; var cd = (e && e.code) || 'unknown'; if (cd === 'unavailable' || cd === 'deadline-exceeded' || cd === 'cancelled') { render(); return; } WR.err = cd; showErr(e); render(); });
           };
           return {
             set: function (d) { try { run(ref.set(JSON.parse(JSON.stringify(d)))); } catch (e) { return Promise.reject(e); } return Promise.resolve(); },
@@ -3123,10 +3123,10 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     };
   }
   function cloudCheck(user) {
-    var done = false, tm = setTimeout(function () { if (!done && navigator.onLine !== false) cloudFail('timeout'); }, 12000);
+    var done = false, tm = setTimeout(function () { if (!done) { try { toast('Slow / no internet. Work as usual, it will upload by itself when net returns.'); } catch (e) { /* ignore */ } } }, 12000);
     FS.collection('_diag').doc(user.uid).set({ t: Date.now(), by: user.email || '' })
       .then(function () { done = true; clearTimeout(tm); WR.err = ''; hideErr(); toast('Cloud connection OK ✓'); render(); })
-      .catch(function (e) { done = true; clearTimeout(tm); cloudFail((e && e.code) || 'unknown'); });
+      .catch(function (e) { done = true; clearTimeout(tm); var cd = (e && e.code) || 'unknown'; if (cd === 'unavailable' || cd === 'deadline-exceeded' || cd === 'cancelled') { try { toast('No internet now. Work as usual, it will upload by itself when net returns.'); } catch (e2) { /* ignore */ } } else cloudFail(cd); });
   }
   (function boot() {
     var cfg = window.THANIMA_CONFIG || {};

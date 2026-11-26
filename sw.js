@@ -1,5 +1,5 @@
 // Thanima Food Agency - offline cache. Network first (always the newest app when online), cache when offline.
-const CACHE = 'thanima-v144';
+const CACHE = 'thanima-v145';
 const CORE = ['./', './index.html', './config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
