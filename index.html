@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17692A"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Thanima"><style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
 /* ===== v14 ===== */
+.sno { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 12px; background: var(--accent); color: #fff; font-size: 12px; font-style: normal; font-weight: 700; margin-right: 8px; }
 .ver { font-size: 10px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 5px; }
 .hi { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .sdot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--surface); padding: 0; cursor: pointer; }
@@ -634,7 +635,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     if (x.payment > 0) money.push('<span class="mchip ok">Paid ' + fmt(x.payment) + '</span>');
     if (b > 0) money.push('<span class="mchip due">Balance ' + fmt(b) + '</span>');
     else if (b < 0) money.push('<span class="mchip owe">Payable ' + fmt(b) + '</span>');
-    return '<li class="stile ' + cls + '"><button class="tilebtn" data-act="shop-sheet" data-id="' + sid + '"><span class="tmain"><span class="tname">' + esc(sh.name) + '</span>' +
+    return '<li class="stile ' + cls + '"><button class="tilebtn" data-act="shop-sheet" data-id="' + sid + '"><span class="tmain"><span class="tname">' + (routePos(sh) ? '<i class="sno">' + routePos(sh) + '</i>' : '') + esc(sh.name) + '</span>' +
       (money.length ? '<span class="tmoney">' + money.join('') + '</span>' : '') + '</span><span class="tside">' + chip + '<span class="chev" aria-hidden="true">›</span></span></button></li>';
   }
   function toggleNoBuy(shopId) {
@@ -1013,7 +1014,9 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     for (var i = 0; i < 70; i++) { var d = addDays(from, i); if (routeDue(r, d)) return d; }
     return '';
   }
-  function shopsOfRoute(id) { return S.shops.filter(function (x) { return x.routeId === id; }).sort(byName); }
+  function bySeq(a, b) { var x = Number(a.seq) > 0 ? Number(a.seq) : 1e9, y = Number(b.seq) > 0 ? Number(b.seq) : 1e9; return x - y || byName(a, b); }
+  function shopsOfRoute(id) { return S.shops.filter(function (x) { return x.routeId === id; }).sort(bySeq); }
+  function routePos(sh) { if (!sh.routeId) return 0; var l = shopsOfRoute(sh.routeId); for (var i = 0; i < l.length; i++) if (l[i].id === sh.id) return i + 1; return 0; }
   function runOf(rid, d) { var id = rid + '_' + d; for (var i = 0; i < S.runs.length; i++) if (S.runs[i].id === id) return S.runs[i]; return null; }
   function routeStaffFor(rid, d) { var u = runOf(rid, d), r = routeById(rid); return (u && u.staffId) || (r && r.staffId) || ''; }
   function routeVehicleFor(rid, d) { var u = runOf(rid, d), r = routeById(rid); return (u && u.vehicle) || (r && r.vehicle) || ''; }
@@ -1387,7 +1390,8 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
       '<label class="l" for="s_name">Shop name</label><input id="s_name" type="text" required value="' + esc(s ? s.name : '') + '">' +
       '<label class="l" for="s_phone">Phone / WhatsApp number</label><input id="s_phone" type="tel" inputmode="tel" placeholder="e.g. 98xxxxxxxx" value="' + esc(s ? s.phone : '') + '">' +
       '<div class="f2"><div><label class="l" for="s_area">Place</label><input id="s_area" type="text" value="' + esc(s ? s.area : '') + '"></div>' +
-      '<div><label class="l" for="s_route">Route</label><select id="s_route"><option value="">No route</option>' + routeOptions(s ? s.routeId : (routeId || S.rsel || (S.rfilter && S.rfilter !== '_none' ? S.rfilter : ''))) + '</select></div></div>' + FA() +
+      '<div><label class="l" for="s_route">Route</label><select id="s_route"><option value="">No route</option>' + routeOptions(s ? s.routeId : (routeId || S.rsel || (S.rfilter && S.rfilter !== '_none' ? S.rfilter : ''))) + '</select></div></div>' +
+      '<label class="l" for="s_seq">Visit order on the route (1 = first shop)</label><input id="s_seq" type="number" inputmode="numeric" min="1" step="1" placeholder="Leave empty = last" value="' + esc(s && routePos(s) ? routePos(s) : '') + '">' + FA() +
       (s ? '<div style="margin-top:16px"><button type="button" class="btn danger block" id="shopDel" data-cnt="' + cnt + '">Delete this shop</button></div>' : '') + '</form>';
     openSheet(h, 's_name');
   }
@@ -1657,7 +1661,7 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
   }
 
   /* ================= v14: simple branded layout, roles, More, My page, bill + UPI ================= */
-  var APP_VER = 'v14.3', LANG = 'en', THEME = 'auto';
+  var APP_VER = 'v14.4', LANG = 'en', THEME = 'auto';
   try { LANG = localStorage.getItem('thanima-lang') || 'en'; THEME = localStorage.getItem('thanima-theme') || 'auto'; } catch (e) { /* ignore */ }
   function applyTheme() { var de = document.documentElement; if (THEME === 'auto') de.removeAttribute('data-theme'); else de.setAttribute('data-theme', THEME); }
   applyTheme();
@@ -1816,8 +1820,9 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     var sid = routeStaffFor(r.id, d), veh = routeVehicleFor(r.id, d);
     var h = '<section class="rblock"><div class="rhead"><div style="min-width:0"><div class="sname">' + esc(r.name) + '</div><div class="muted sm">' + esc(staffLabel(sid)) + (veh ? ' · ' + esc(veh) : '') + '</div></div>' +
       '<div class="bal due"><small>' + tx('Sale') + '</small><b class="num">' + fmt(st.sale) + '</b></div></div>';
+    if (shops.length > 1) h += '<button class="btn sm" data-act="seq-order" data-id="' + esc(r.id) + '" style="margin:0 0 8px">⇅ Change visit order</button>';
     h += '<div class="chips"><span class="chip ok">' + c.sale + ' ✓</span><span class="chip nobuy">' + c.nobuy + ' ✕</span><span class="chip red">' + c.none + ' left</span><span class="chip">' + shops.length + ' ' + tx('Shops') + '</span></div>';
-    h += shops.length ? '<ul class="list tiles">' + tiles.join('') + '</ul>' : '<div class="empty">No shops on this route yet.</div>';
+    h += S.ordering === r.id ? orderList(r) : shops.length ? '<ul class="list tiles">' + tiles.join('') + '</ul>' : '<div class="empty">No shops on this route yet.</div>';
     return h + '</section>';
   }
 
@@ -2287,6 +2292,35 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     }).catch(function () { toast('Could not prepare the photo on this phone'); });
   };
   function catGo() { if (!CAT || !CAT.file) return; navigator.share({ files: [CAT.file], text: CAT.text }).catch(function () { /* cancelled */ }); }
+
+
+  /* visit order of shops on a route */
+  function saveSeq(sdoc, pos) {
+    var docs = [];
+    if (!sdoc.routeId) { sdoc.seq = ''; docs.push(sdoc); }
+    else {
+      var others = shopsOfRoute(sdoc.routeId).filter(function (x) { return x.id !== sdoc.id; });
+      var at = pos > 0 ? Math.min(pos - 1, others.length) : others.length;
+      others.splice(at, 0, sdoc);
+      others.forEach(function (x, i) { if (x === sdoc) { sdoc.seq = i + 1; docs.push(sdoc); } else if (Number(x.seq) !== i + 1) docs.push(Object.assign({}, x, { seq: i + 1 })); });
+    }
+    return docs.reduce(function (p, d) { return p.then(function (ok) { return ok === false ? false : saveDoc('shops', d); }); }, Promise.resolve(true));
+  }
+  function moveShop(id, dir) {
+    var sh = shopById(id); if (!sh || !sh.routeId) return;
+    var l = shopsOfRoute(sh.routeId), i = l.findIndex(function (x) { return x.id === id; }), j = i + dir;
+    if (i < 0 || j < 0 || j >= l.length) return;
+    var t = l[i]; l[i] = l[j]; l[j] = t;
+    l.reduce(function (p, x, k) { return p.then(function () { return Number(x.seq) === k + 1 ? true : saveDoc('shops', Object.assign({}, x, { seq: k + 1 })); }); }, Promise.resolve(true)).then(function () {
+      var seqs = {}; l.forEach(function (x, k) { seqs[x.id] = k + 1; }); S.shops.forEach(function (x) { if (seqs[x.id]) x.seq = seqs[x.id]; }); render();
+    });
+  }
+  function orderList(r) {
+    var l = shopsOfRoute(r.id);
+    return '<ul class="list">' + l.map(function (sh, i) {
+      return '<li class="row-item"><div class="ri-main"><div class="sname"><i class="sno">' + (i + 1) + '</i>' + esc(sh.name) + '</div></div><div class="ri-side"><button class="btn sm" data-act="seq-up" data-id="' + esc(sh.id) + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">▲</button> <button class="btn sm" data-act="seq-down" data-id="' + esc(sh.id) + '"' + (i === l.length - 1 ? ' disabled' : '') + ' aria-label="Move down">▼</button></div></li>';
+    }).join('') + '</ul><button class="btn primary block" data-act="seq-done" style="margin-top:8px">Done</button>';
+  }
 
   /* live updates inside the shop card and My page */
   document.addEventListener('input', function (ev) {
@@ -2769,6 +2803,10 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
       case 'more-go': if (el.dataset.go === 'backup') { S.tab = 'report'; S.rsub = 'backup'; } else S.tab = el.dataset.go; render(); window.scrollTo(0, 0); break;
       case 'sc-add': scLine(el.dataset.box); break;
       case 'shortage': openShortage(); break;
+      case 'seq-up': moveShop(el.dataset.id, -1); break;
+      case 'seq-down': moveShop(el.dataset.id, 1); break;
+      case 'seq-order': S.ordering = el.dataset.id; render(); break;
+      case 'seq-done': S.ordering = ''; render(); break;
       case 'hard-update': hardUpdate(); break;
       case 'cat-go': catGo(); break;
       case 'bill-open': openBill(el.dataset.shop, el.dataset.date); break;
@@ -2911,8 +2949,9 @@ a.btn.sent { background: var(--ok-bg); color: var(--ok); border-color: var(--ok)
     } else if (f.id === 'shopForm') {
       var old = f.dataset.id ? shopById(f.dataset.id) : null, name = document.getElementById('s_name').value.trim();
       if (!name) return fail('Enter the shop name');
-      saveDoc('shops', { id: old ? old.id : uid(), name: name, phone: document.getElementById('s_phone').value.trim(), area: document.getElementById('s_area').value.trim(), routeId: document.getElementById('s_route').value, day: old && old.day != null ? old.day : '', createdAt: old ? (old.createdAt || Date.now()) : Date.now() })
-        .then(function (ok) { done(ok, 'Shop saved'); });
+      var sdoc = { id: old ? old.id : uid(), name: name, phone: document.getElementById('s_phone').value.trim(), area: document.getElementById('s_area').value.trim(), routeId: document.getElementById('s_route').value, day: old && old.day != null ? old.day : '', createdAt: old ? (old.createdAt || Date.now()) : Date.now() };
+      var want = parseInt(document.getElementById('s_seq').value, 10);
+      saveSeq(sdoc, isFinite(want) && want > 0 ? want : 0).then(function (ok) { done(ok, 'Shop saved'); });
     } else if (f.id === 'itemForm') {
       var oi = f.dataset.id ? itemById(f.dataset.id) : null, iname = document.getElementById('i_name').value.trim();
       if (!iname) return fail('Enter the item name');
